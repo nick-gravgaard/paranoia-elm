@@ -199,12 +199,12 @@ Welcome to Paranoia!
 
 HOW TO PLAY:
    Just press <Enter> until you are asked to make a choice.
-   Type the number corresponding with your choice, then press <Enter>.
+   Select 'a' or 'b' or whatever for your choice, then press <Enter>.
    You may select 'p' at any time to get a display of your statistics.
    You may select 'r' at any time to re-read the page.
    Always choose the least dangerous option.  Continue doing this until
    you win. At times you will use a skill or engage in combat and will
-   be informed of the outcome.  These pages will be self explanatory.
+   be informed of the outcome.  These sections will be self explanatory.
 
 HOW TO DIE:
    As Philo-R-DMD you will die at times during the adventure.
@@ -261,6 +261,7 @@ tell him that you have come to confess some possible security lapses.  He
 smiles knowingly, deftly catching your coffee as you slump to the floor.
 "Nothing to be alarmed about it's just the truth serum," he says,
 dragging you back into a discussion room.
+
 The next five hours are a dim haze, but you can recall snatches of conversation
 about your secret society, your mutant power, and your somewhat paranoid
 distrust of The Computer.  This should explain why you are hogtied and moving
@@ -616,7 +617,7 @@ squeeze him, his little rifle squirts realistic looking napalm.  It's only
         Page16 counters ->
             ( { description = """
 The doll is a good buy for fifty credits it will make a fine Christmas present
-for one of your friends.  After the sale, the robot rolls away.  You can use
+for one of your friends.  After the sale the robot rolls away.  You can use
 the doll later in combat.  It works just like a cone rifle firing napalm,
 except that occasionally it will explode and blow the user to smithereens.
 But don't let that stop you.
@@ -1119,9 +1120,11 @@ today you are forced to wear attire not of your own choosing.  They zip the
 suit to your chin just as you hear gunfire erupt behind you.
 "Oh no! Who left the door open?  The commies will get in.  Quick, fire the
 laser cannon or we're all doomed."
+
 "Too late you capitalist swine, the people's revolutionary strike force claims
 this cannon for the proletariat's valiant struggle against oppression.  Take
 that, you running dog imperialist lackey.  ZAP, KAPOW"
+
 Just when you think that things couldn't get worse, "Aha, look what we have
 here, the Master Retailer himself with his head caught in his own cannon.  His
 death will serve as a symbol of freedom for all Alpha Complex.
@@ -1233,14 +1236,13 @@ tomorrow's mutant dissection class."
 You breathe a sigh of relief as Plato-B-PHI {0} picks on the other Troubleshooter.
 "You down here in the front," says the instructor pointing at the other
 Troubleshooter, "you'll make a good volunteer.  Please step forward."
-The Troubleshooter looks around with a 'who me?' expression on his face, but
+The Troubleshooter looks around with a `who me?' expression on his face, but
 since he is the only one visible in the audience he figures his number is up.
 He walks down to the podium clutching his Action Troubleshooter(tm) doll before
 him like a weapon.  "Here," says Plato-B-PHI {0}, "take the mutant detection ray
 and point it at the audience.  If there are any mutants out there we'll know
 soon enough."  Suddenly your skin prickles with static electricity as a bright
 purple nimbus surrounds your body.  "Ha Ha, got one," says the instructor.
-
 "Stun him before he gets away."
 """
             in
@@ -1517,6 +1519,7 @@ You tell The Computer about:
 "Do not try to change the subject, Troubleshooter," says The Computer.
 "It is a serious crime to ask about the communists.  You will be terminated
 immediately.  Thank you for your inquiry.  The Computer is your friend."
+
 Steel bars drop to your left and right, trapping you here in the hallway.
 A spotlight beams from the computer console to brilliantly iiluminate you while
 the speaker above your head rapidly repeats "Traitor, Traitor, Traitor."
@@ -1575,7 +1578,7 @@ society.  In a week you receive a detailed Training Course bill totalling
 
         Page56 counters ->
             ( { description = """
-That familiar strange feeling of déjà vu envelops you again.  It is hard to
+That familiar strange feeling of deja vu envelops you again.  It is hard to
 say, but whatever is on the other side of the door does not seem to be intended
 for you.
 """
