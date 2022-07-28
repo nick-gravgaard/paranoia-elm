@@ -44,7 +44,7 @@ type Msg
     | Page20
     | Page21
     | Page22
-    | Page22RandomEncounterResult Int
+    | Page22RandomEncounterResult Msg
     | Page23
     | Page24
     | Page25
@@ -470,7 +470,7 @@ to nowhere.
                 success =
                     List.sum diceResult < counters.moxie
 
-                descriptionTemplate =
+                description =
                     """
 You nervously select a tubecar and step aboard.
 
@@ -479,7 +479,7 @@ Let's see if you can roll under your moxie ({0}). You roll two d10 - a {1}. {2}
             in
             ( { description =
                     interpolate
-                        descriptionTemplate
+                        description
                         [ String.fromInt counters.moxie
                         , String.join " and a " <| List.map String.fromInt diceResult
                         , successText success
@@ -560,8 +560,8 @@ hear him say, "Let's see your briefing release form, bud.  You aren't
 getting out of here without it."
 """
               , choices =
-                    [ ( "➡️ You sit down at the table and read the Orange packet", Page11)
-                    , ( "➡️ You stare around the room some more", Page57)
+                    [ ( "➡️ You sit down at the table and read the Orange packet", Page11 )
+                    , ( "➡️ You stare around the room some more", Page57 )
                     ]
               , counters = counters
               , showCharSheet = False
@@ -722,7 +722,7 @@ and the elfbot's armour has no effect against your laser.
                             , newCounters
                             )
                 in
-                ( { description = description1 ++ description2 |> String.join "\n"
+                ( { description = "" :: description1 ++ description2 |> String.join "\n"
                   , choices = nextMsg
                   , counters = newerCounters
                   , showCharSheet = False
@@ -735,7 +735,7 @@ and the elfbot's armour has no effect against your laser.
                     ( lineEnd, healedCounters ) =
                         heal counters
                 in
-                ( { description = [ "It tried to fire again, but the toy exploded and demolished it.", "You will need more evidence, so you search GDH7-beta further" ++ lineEnd ] |> String.join "\n"
+                ( { description = [ "", "It tried to fire again, but the toy exploded and demolished it.", "You will need more evidence, so you search GDH7-beta further" ++ lineEnd ] |> String.join "\n"
                   , choices = next Page22
                   , counters = healedCounters
                   , showCharSheet = False
@@ -772,7 +772,7 @@ a summons from its dark lord, the Master Retailer.
                 success =
                     List.sum diceResult < counters.agility
 
-                descriptionTemplate =
+                description =
                     """
 WHAM, suddenly you are struck from behind.
 
@@ -781,7 +781,7 @@ Let's see if you can roll under your agility ({0}). You roll two d10 - a {1}. {2
             in
             ( { description =
                     interpolate
-                        descriptionTemplate
+                        description
                         [ String.fromInt counters.agility
                         , String.join " and a " <| List.map String.fromInt diceResult
                         , successText success
@@ -888,25 +888,10 @@ THIS WAY" and points off between two rows of caroling elfbots.
 
         Page22 ->
             ( model
-            , Random.generate Page22RandomEncounterResult (Random.int 1 4)
+            , Random.generate Page22RandomEncounterResult (Random.uniform Page18 [ Page15, Page21, Page29 ])
             )
 
-        Page22RandomEncounterResult diceResult ->
-            let
-                nextChoice =
-                    case diceResult of
-                        1 ->
-                            Page18
-
-                        2 ->
-                            Page15
-
-                        3 ->
-                            Page21
-
-                        _ ->
-                            Page29
-            in
+        Page22RandomEncounterResult nextChoice ->
             ( { description = """
 You are searching Goods Distribution Hall 7-beta.
 """
