@@ -171,22 +171,22 @@ maybeNewClone counters =
 
 cloneDies : Counters -> Msg -> List ( String, Msg )
 cloneDies counters msg =
-    [ ( interpolate "Clone {0} just died." [ String.fromInt counters.clone ], msg ) ]
+    [ ( interpolate "🪦 Clone {0} just died." [ String.fromInt counters.clone ], msg ) ]
 
 
 next : Msg -> List ( String, Msg )
 next msg =
-    [ ( "Next", msg ) ]
+    [ ( "➡️ Next", msg ) ]
 
 
 more : Msg -> List ( String, Msg )
 more msg =
-    [ ( "More...", msg ) ]
+    [ ( "⬇️ More...", msg ) ]
 
 
 restart : List ( String, Msg )
 restart =
-    [ ( "Restart", Instructions ) ]
+    [ ( "🔁 Restart", Instructions ) ]
 
 
 rollDice : Int -> Int -> Random.Generator (List Int)
@@ -299,8 +299,8 @@ Christmas.  The Computer says, "That is an A-1 ULTRAVIOLET ONLY IMMEDIATE
 TERMINATION classified topic.  What is your clearance please, Troubleshooter?"
 """
               , choices =
-                    [ ( "You give your correct clearance", Page4 )
-                    , ( "You lie and claim Ultraviolet clearance", Page5 )
+                    [ ( "➡️ You give your correct clearance", Page4 )
+                    , ( "➡️ You lie and claim Ultraviolet clearance", Page5 )
                     ]
               , counters = counters
               , showCharSheet = False
@@ -331,8 +331,8 @@ arrives carrying a white bundle.  He asks you to sign for it, then hands it to
 you and stands back, well outside of a fragmentation grenade's blast radius.
 """
               , choices =
-                    [ ( "You open the package and put on the uniform", Page6 )
-                    , ( "You finally come to your senses and run for it", Page7 )
+                    [ ( "➡️ You open the package and put on the uniform", Page6 )
+                    , ( "➡️ You finally come to your senses and run for it", Page7 )
                     ]
               , counters = counters
               , showCharSheet = False
@@ -422,10 +422,10 @@ Inside, you can see an IS agent cheerfully greet an infrared citizen and then
 lead him at gunpoint into one of the rubber lined discussion rooms.
 """
               , choices =
-                    [ ( "You decide to stop here and chat, as ordered by The Computer"
+                    [ ( "➡️ You decide to stop here and chat, as ordered by The Computer"
                       , Page2 { counters | computerRequest = True }
                       )
-                    , ( "You just continue blithely on past"
+                    , ( "➡️ You just continue blithely on past"
                       , Page10
                       )
                     ]
@@ -449,7 +449,7 @@ to nowhere.
                     let
                         conditionalChoices =
                             if counters.ultraViolet then
-                                [ ( "You decide to ask The Computer about Christmas using a nearby terminal"
+                                [ ( "➡️ You decide to ask The Computer about Christmas using a nearby terminal"
                                   , Page3
                                   )
                                 ]
@@ -458,7 +458,7 @@ to nowhere.
                                 []
                     in
                     conditionalChoices
-                        ++ [ ( "You think you have the route worked out, so you'll board a tube train"
+                        ++ [ ( "➡️ You think you have the route worked out, so you'll board a tube train"
                              , Page10Tubecar
                              )
                            ]
@@ -496,13 +496,13 @@ Let's see if you can roll under your moxie ({0}). You roll two d10 - a {1}. {2}
             ( { description = description
               , choices =
                     if success then
-                        [ ( "You just caught a purple line tubecar."
+                        [ ( "➡️ You just caught a purple line tubecar."
                           , Page13
                           )
                         ]
 
                     else
-                        [ ( "You just caught a brown line tubecar."
+                        [ ( "➡️ You just caught a brown line tubecar."
                           , Page48
                           )
                         ]
@@ -556,10 +556,10 @@ the megabolts holding the door shut.  You are now free to continue the
 mission.
 """
               , choices =
-                    [ ( "You wish to ask The Computer for more information about Christmas"
+                    [ ( "➡️ You wish to ask The Computer for more information about Christmas"
                       , Page3
                       )
-                    , ( "You have decided to go directly to Goods Distribution Hall 7-beta"
+                    , ( "➡️ You have decided to go directly to Goods Distribution Hall 7-beta"
                       , Page10
                       )
                     ]
@@ -580,10 +580,10 @@ hear him say, "Let's see your briefing release form, bud.  You aren't
 getting out of here without it."
 """
               , choices =
-                    [ ( "You sit down at the table and read the Orange packet"
+                    [ ( "➡️ You sit down at the table and read the Orange packet"
                       , Page11
                       )
-                    , ( "You stare around the room some more"
+                    , ( "➡️ You stare around the room some more"
                       , Page57
                       )
                     ]
@@ -644,9 +644,9 @@ squeeze him, his little rifle squirts realistic looking napalm.  It's only
 50 credits.  Oh yeah, Merry Christmas."
 """
               , choices =
-                    [ ( "You decide to buy the doll.", Page16 )
-                    , ( "You shoot the robot.", Page17 )
-                    , ( "You ignore the robot and keep searching the hall.", Page22 )
+                    [ ( "➡️ You decide to buy the doll.", Page16 )
+                    , ( "➡️ You shoot the robot.", Page17 )
+                    , ( "➡️ You ignore the robot and keep searching the hall.", Page22 )
                     ]
               , counters = counters
               , showCharSheet = False
@@ -675,7 +675,7 @@ You whip out your laser and shoot the robot, but not before it squeezes the
 toy at you.  The squeeze toy has the same effect as a cone rifle firing napalm,
 and the elfbot's armour has no effect against your laser.
 """
-              , choices = [ ( "Fight!", Page17Fight 1 15 ) ]
+              , choices = [ ( "⚔️ Fight!", Page17Fight 1 15 ) ]
               , counters = counters
               , showCharSheet = False
               }
@@ -901,8 +901,8 @@ Suddenly a large florescent sign pops up from the ground. It reads "SCENARIO
 THIS WAY" and points off between two rows of caroling elfbots.
 """
               , choices =
-                    [ ( "Follow the sign", Page29 )
-                    , ( "Ignore the sign", Page22 )
+                    [ ( "➡️ Follow the sign", Page29 )
+                    , ( "➡️ Ignore the sign", Page22 )
                     ]
               , counters = counters
               , showCharSheet = False
@@ -949,8 +949,8 @@ been looking over your shoulder.  You easily gun him down, but not before a
 dozen more citizens take notice and aim their weapons at you.
 """
               , choices =
-                    [ ( "You tell them that it was really only a bad joke", Page28 )
-                    , ( "You want to fight it out, one against twelve", Page24 )
+                    [ ( "➡️ You tell them that it was really only a bad joke", Page28 )
+                    , ( "➡️ You want to fight it out, one against twelve", Page24 )
                     ]
               , counters = counters
               , showCharSheet = False
@@ -965,8 +965,8 @@ the 12 citizens who are going to make a sponge out of you.  Tell you what,
 I'll give you a second chance.
 """
               , choices =
-                    [ ( "You change your mind and say it was only a bad joke", Page28 )
-                    , ( "You REALLY want to shoot it out", Page25 )
+                    [ ( "➡️ You change your mind and say it was only a bad joke", Page28 )
+                    , ( "➡️ You REALLY want to shoot it out", Page25 )
                     ]
               , counters = counters
               , showCharSheet = False
@@ -981,8 +981,8 @@ They're closing in.  Their trigger fingers are twitching, they're about to
 shoot.  This is your last chance.
 """
               , choices =
-                    [ ( "You tell them it was all just a bad joke", Page28 )
-                    , ( "You are going to shoot", Page26 )
+                    [ ( "➡️ You tell them it was all just a bad joke", Page28 )
+                    , ( "➡️ You are going to shoot", Page26 )
                     ]
               , counters = counters
               , showCharSheet = False
@@ -1032,9 +1032,9 @@ you can see someone's dim outline in the shadows.  "I got some information
 on the Master Retailer.  It'll only cost you 30 psst credits."
 """
               , choices =
-                    [ ( "You pay the 30 credits for the info.", Page30 )
-                    , ( "You would rather threaten him for the information.", Page31 )
-                    , ( "You ignore him and walk away.", Page22 )
+                    [ ( "➡️ You pay the 30 credits for the info.", Page30 )
+                    , ( "➡️ You would rather threaten him for the information.", Page31 )
+                    , ( "➡️ You ignore him and walk away.", Page22 )
                     ]
               , counters = counters
               , showCharSheet = False
@@ -1058,9 +1058,9 @@ you.  Opening this door is a capital offense.  Do not do it.  Not at all. This
 is not a joke.
 """
               , choices =
-                    [ ( "You use your Precognition mutant power on opening the door.", Page56 )
-                    , ( "You just go through the door anyway.", Page33 )
-                    , ( "You decide it's too dangerous and walk away.", Page22 )
+                    [ ( "➡️ You use your Precognition mutant power on opening the door.", Page56 )
+                    , ( "➡️ You just go through the door anyway.", Page33 )
+                    , ( "➡️ You decide it's too dangerous and walk away.", Page22 )
                     ]
               , counters = counters
               , showCharSheet = False
@@ -1080,8 +1080,8 @@ side of his head.  "Are you going to pay?" says his mouth speaker,
 "or are you going to pssfft go away stupid?"
 """
               , choices =
-                    [ ( "You pay the 30 credits", Page30 )
-                    , ( "You pssfft go away stupid", Page22 )
+                    [ ( "➡️ You pay the 30 credits", Page30 )
+                    , ( "➡️ You pssfft go away stupid", Page22 )
                     ]
               , counters = counters
               , showCharSheet = False
@@ -1163,8 +1163,8 @@ showered with awards for foiling the insidious communist plot to take over the
 complex.
 """
               , choices =
-                    [ ( "You rush off to the nearest computer terminal to expose the commies", Page46 )
-                    , ( "You wander off to look for more evidence", Page22 )
+                    [ ( "➡️ You rush off to the nearest computer terminal to expose the commies", Page46 )
+                    , ( "➡️ You wander off to look for more evidence", Page22 )
                     ]
               , counters = { counters | readLetter = True }
               , showCharSheet = False
@@ -1218,9 +1218,9 @@ identification and elimination of unregistered mutants.  If you have any
 objections please voice them now."
 """
               , choices =
-                    [ ( "You appreciate his courtesy and voice an objection.", Page32 )
-                    , ( "After your head is removed from the cannon, you register as a mutant.", Page23 )
-                    , ( "After your head is removed from the cannon, you go to the unregistered mutant identification and elimination seminar.", Page37 )
+                    [ ( "➡️ You appreciate his courtesy and voice an objection.", Page32 )
+                    , ( "➡️ After your head is removed from the cannon, you register as a mutant.", Page23 )
+                    , ( "➡️ After your head is removed from the cannon, you go to the unregistered mutant identification and elimination seminar.", Page37 )
                     ]
               , counters = counters
               , showCharSheet = False
@@ -1272,8 +1272,8 @@ The Troubleshooter down the front squirms deeper into his chair.
             in
             ( { description = interpolate description [ String.fromInt counters.platoClone ]
               , choices =
-                    [ ( "You volunteer for the test", Page39 )
-                    , ( "You duck behind a chair and hope the instructor doesn't notice you", Page40 )
+                    [ ( "➡️ You volunteer for the test", Page39 )
+                    , ( "➡️ You duck behind a chair and hope the instructor doesn't notice you", Page40 )
                     ]
               , counters = counters
               , showCharSheet = False
@@ -1327,7 +1327,7 @@ purple nimbus surrounds your body.  "Ha Ha, got one," says the instructor.
 """
             in
             ( { description = interpolate description [ String.fromInt counters.platoClone ]
-              , choices = [ ( "Fight!", Page40Fight ) ]
+              , choices = [ ( "⚔️ Fight!", Page40Fight ) ]
               , counters = counters
               , showCharSheet = False
               }
@@ -1378,8 +1378,8 @@ It doesn't take you long to learn what he is up to you feel him briefly shake
 your hand with the secret Illuminati handshake.
 """
               , choices =
-                    [ ( "You respond with the proper Illuminati code phrase, \"Ewige Blumenkraft\"", Page42 )
-                    , ( "You ignore this secret society contact", Page43 )
+                    [ ( "➡️ You respond with the proper Illuminati code phrase, \"Ewige Blumenkraft\"", Page42 )
+                    , ( "➡️ You ignore this secret society contact", Page43 )
                     ]
               , counters = counters
               , showCharSheet = False
@@ -1396,8 +1396,8 @@ hand shake you can identify the member of any secret society.  Please keep your
 weapons trained on him while I call a guard.
 """
               , choices =
-                    [ ( "You run for it", Page51 )
-                    , ( "You wait for the guard", Page52 )
+                    [ ( "➡️ You run for it", Page51 )
+                    , ( "➡️ You wait for the guard", Page52 )
                     ]
               , counters = counters
               , showCharSheet = False
@@ -1420,8 +1420,8 @@ attend the graduation ceremony.  Before you must go you have a little time to
 talk to The Computer about, you know, certain topics.
 """
               , choices =
-                    [ ( "You go looking for a computer terminal", Page44 )
-                    , ( "You go to the graduation ceremony immediately", Page55 )
+                    [ ( "➡️ You go looking for a computer terminal", Page44 )
+                    , ( "➡️ You go to the graduation ceremony immediately", Page55 )
                     ]
               , counters = counters
               , showCharSheet = False
@@ -1436,14 +1436,14 @@ activate a computer terminal.  "AT YOUR SERVICE" reads the computer screen.
 """
               , choices =
                     if counters.readLetter then
-                        [ ( "You register yourself as a mutant.", Page23 )
-                        , ( "You want to chat about the commies.", Page46 )
-                        , ( "You change your mind and go to the graduation ceremony.", Page55 )
+                        [ ( "➡️ You register yourself as a mutant.", Page23 )
+                        , ( "➡️ You want to chat about the commies.", Page46 )
+                        , ( "➡️ You change your mind and go to the graduation ceremony.", Page55 )
                         ]
 
                     else
-                        [ ( "You register yourself as a mutant.", Page23 )
-                        , ( "You change your mind and go to the graduation ceremony.", Page55 )
+                        [ ( "➡️ You register yourself as a mutant.", Page23 )
+                        , ( "➡️ You change your mind and go to the graduation ceremony.", Page55 )
                         ]
               , counters = counters
               , showCharSheet = False
@@ -1477,8 +1477,8 @@ interest of your continued survival to be asking about such topics," says
 The Computer.
 """
               , choices =
-                    [ ( "You insist on talking about the communists", Page53 )
-                    , ( "You change the subject", Page54 )
+                    [ ( "➡️ You insist on talking about the communists", Page53 )
+                    , ( "➡️ You change the subject", Page54 )
                     ]
               , counters = counters
               , showCharSheet = False
@@ -1602,8 +1602,8 @@ guard.  The guard leads you to an Internal Security self incrimination station.
 You tell The Computer about:
 """
               , choices =
-                    [ ( "The commies who have infiltrated the Troubleshooter Training Course and the impending People's Revolution", Page47 )
-                    , ( "Something less dangerous", Page54 )
+                    [ ( "➡️ The commies who have infiltrated the Troubleshooter Training Course and the impending People's Revolution", Page47 )
+                    , ( "➡️ Something less dangerous", Page54 )
                     ]
               , counters = counters
               , showCharSheet = False
@@ -1699,8 +1699,8 @@ say, but whatever is on the other side of the door does not seem to be intended
 for you.
 """
               , choices =
-                    [ ( "You open the door and step through", Page33 )
-                    , ( "You go looking for more information", Page22 )
+                    [ ( "➡️ You open the door and step through", Page33 )
+                    , ( "➡️ You go looking for more information", Page22 )
                     ]
               , counters = counters
               , showCharSheet = False
@@ -1714,8 +1714,8 @@ In the centre of the room is a table and a single chair.  There is an Orange
 folder on the table top, but you can't make out the lettering on it.
 """
               , choices =
-                    [ ( "You sit down and read the folder", Page11 )
-                    , ( "You leave the room", Page12 )
+                    [ ( "➡️ You sit down and read the folder", Page11 )
+                    , ( "➡️ You leave the room", Page12 )
                     ]
               , counters = counters
               , showCharSheet = False
@@ -1795,9 +1795,9 @@ view model =
             let
                 (mainText, choices) =
                     if model.showCharSheet then
-                        (charSheet model.counters, [ ("Back to game", ToggleCharSheet) ])
+                        (charSheet model.counters, [ ("⬅️ Back to game", ToggleCharSheet) ])
                     else
-                        (model.description, model.choices ++ [ ("Show character sheet", ToggleCharSheet) ])
+                        (model.description, model.choices ++ [ ("📊 Show character sheet", ToggleCharSheet) ])
             in
                 let
                     otherParas =
