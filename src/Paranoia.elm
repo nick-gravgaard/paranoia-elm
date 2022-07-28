@@ -1,7 +1,6 @@
 module Paranoia exposing (..)
 
 import Browser
--- import Dict exposing (Dict)
 import Element exposing (..)
 import Element.Font as Font
 import Element.Input exposing (..)
@@ -10,88 +9,84 @@ import Html.Attributes exposing (style)
 import Random
 import String
 import String.Interpolate exposing (interpolate)
+import Element.Region exposing (description)
 
 
-type Style
-    = Next Model
-    | Choice (List (String, Model))
-    -- | Logic (Model -> Model)
-    | CloneDies
-    | End
-
-
-type PageRef
+type Msg
     = Instructions
-    | Page1
-    | Page2
-    | Page3
-    | Page4
-    | Page5
-    | Page6
-    | Page7
-    | Page8
-    | Page9
-    | Page10
-    | Page10Tubecar
-    | Page11
-    | Page11More
-    | Page12
-    | Page13
-    | Page14
-    | Page15
-    | Page16
-    | Page17
-    | Page18
-    | Page19
-    | Page20
-    | Page21
-    | Page22
-    | Page23
-    | Page24
-    | Page25
-    | Page26
-    | Page28
-    | Page29
-    | Page30
-    | Page31
-    | Page32
-    | Page33
-    | Page34
-    | Page34More
-    | Page35
-    | Page36
-    | Page37
-    | Page38
-    | Page39
-    | Page40
-    | Page41
-    | Page42
-    | Page43
-    | Page44
-    | Page45
-    | Page46
-    | Page47
-    | Page48
-    | Page49
-    | Page50
-    | Page51
-    | Page52
-    | Page53
-    | Page54
-    | Page55
-    | Page55More
-    | Page56
-    | Page57
+    | Page1 Counters
+    | Page2 Counters
+    | Page3 Counters
+    | Page4 Counters
+    | Page5 Counters
+    | Page6 Counters
+    | Page7 Counters
+    | Page8 Counters
+    | Page9 Counters
+    | Page10 Counters
+    | Page10Tubecar Counters
+    | Page10TubecarResult Counters (List Int)
+    | Page11 Counters
+    | Page11More Counters
+    | Page12 Counters
+    | Page13 Counters
+    | Page14 Counters
+    | Page15 Counters
+    | Page16 Counters
+    | Page17 Counters
+    | Page17Fight Counters Int Int
+    | Page17FightResult Counters Int Int Int Int Int (List Int)
+    | Page18 Counters
+    | Page18Balance Counters
+    | Page18BalanceResult Counters (List Int)
+    | Page19 Counters
+    | Page19KilledTooMany Counters
+    | Page20 Counters
+    | Page21 Counters
+    | Page22 Counters
+    | Page22RandomEncounterResult Counters Int
+    | Page23 Counters
+    | Page24 Counters
+    | Page25 Counters
+    | Page26 Counters
+    | Page28 Counters
+    | Page29 Counters
+    | Page30 Counters
+    | Page31 Counters
+    | Page32 Counters
+    | Page33 Counters
+    | Page34 Counters
+    | Page34More Counters
+    | Page35 Counters
+    | Page36 Counters
+    | Page37 Counters
+    | Page38 Counters
+    | Page39 Counters
+    | Page40 Counters
+    | Page40Fight Counters
+    | Page40FightResult Counters Int Int
+    | Page41 Counters
+    | Page42 Counters
+    | Page43 Counters
+    | Page44 Counters
+    | Page45 Counters
+    | Page46 Counters
+    | Page47 Counters
+    | Page48 Counters
+    | Page49 Counters
+    | Page50 Counters
+    | Page51 Counters
+    | Page52 Counters
+    | Page53 Counters
+    | Page54 Counters
+    | Page55 Counters
+    | Page55More Counters
+    | Page56 Counters
+    | Page57 Counters
     | YouLose
 
 
-type alias Page =
-    { description : GameCounters -> String
-    , style : Style
-    }
-
-
-type alias GameCounters =
+type alias Counters =
     { moxie : Int
     , agility : Int
     , hitPoints : Int
@@ -107,24 +102,23 @@ type alias GameCounters =
     }
 
 
-type Dice
-    = DiceNeeded Int Int
-    | DiceResult (List Int)
-
-
 type alias Model =
-    { pageRef : PageRef
-    , counters : GameCounters
-    , maybeDice : Maybe Dice
+    { description : String
+    , next : List (String, Msg)
     }
 
 
-type Msg
-    = GotDiceResult (List Int)
-    | ChangePage PageRef
-    | ChangeModel Model
-    | NewClone
-    | Restart
+type alias DiceRolls =
+    { r1 : Int
+    , r2 : Int
+    , r3 : Int
+    , r4 : (List Int)
+    }
+
+type AttackResult
+    = Dead
+    | Injured Int
+    | Missed
 
 
 charsheet : Int -> String
@@ -156,27 +150,47 @@ Equipment: Red Reflec Armour, Laser Pistol, Laser Barrel (red),
 """ [ String.fromInt clone ]
 
 
-newClone : GameCounters -> GameCounters
-newClone counters =
-    { counters
-        | clone = counters.clone + 1
-        , ultraViolet = False
-        , actionDoll = False
-        , hitPoints = 10
-        , killerCount = 0
-    }
+maybeNewClone : Counters -> Maybe Counters
+maybeNewClone counters =
+    if counters.clone > 6 then
+        Nothing
+    else
+        Just
+            { counters
+            | clone = counters.clone + 1
+            , ultraViolet = False
+            , actionDoll = False
+            , hitPoints = 10
+            , killerCount = 0
+            }
+
+cloneDies : Counters -> Msg -> (String, Msg)
+cloneDies counters msg =
+    (interpolate "Clone {0} just died." [ String.fromInt counters.clone ], msg)
 
 
-getPage : Model -> Page
-getPage model =
-    let
-        counters = model.counters
-    in
-    case model.pageRef of
+more : Msg -> (String, Msg)
+more msg =
+    ("More...", msg)
+
+restart : (String, Msg)
+restart =
+    ("Restart", Page1 initCounters)
 
 
-        Instructions ->
-            { description = \_ -> """
+rollDice : Int -> Int -> Random.Generator (List Int)
+rollDice num sides =
+    Random.list num (Random.int 1 sides)
+
+
+withCmdNone : Model -> (Model, Cmd Msg)
+withCmdNone model =
+    (model, Cmd.none)
+
+
+instructionsModel : Model
+instructionsModel =
+    { description = """
 Welcome to Paranoia!
 
 HOW TO PLAY:
@@ -200,21 +214,38 @@ HOW TO WIN:
    If you make it, congratulations.
    If not, you can try again later.
 """
-            , style = Next { model | pageRef = Page1 }
-            }
+    , next = [ more <| Page1 initCounters ]
+    }
 
-        Page1 ->
-            { description = \_ -> """
+
+update : Msg -> Model -> (Model, Cmd Msg)
+update msg model =
+    case msg of
+        Instructions ->
+            (instructionsModel, Cmd.none)
+
+        Page1 counters ->
+            ({ description = """
 You wake up face down on the red and pink checked E-Z-Kleen linoleum floor.
 You recognise the pattern, it's the type preferred in the internal security
 briefing cells.  When you finally look around you, you see that you are alone
 in a large mission briefing room.
 """
-            , style = Next { model | pageRef = Page57 }
-            }
+            , next = [ more <| Page57 counters ]
+            }, Cmd.none)
 
-        Page2 ->
-            { description = \_ -> """
+        Page2 counters ->
+            let
+                nextMsg =
+                    case (maybeNewClone counters, counters.computerRequest) of
+                        (Nothing, _) ->
+                            YouLose
+                        (Just newCloneCounters, True) ->
+                            Page45 newCloneCounters
+                        (Just newCloneCounters, False) ->
+                            Page32 newCloneCounters
+            in
+            ({ description = """
 "Greetings," says the kindly Internal Security self incrimination expert who
 meets you at the door, "How are we doing today?"  He offers you a doughnut
 and coffee and asks what brings you here.  This doesn't seem so bad, so you
@@ -228,43 +259,32 @@ distrust of The Computer.  This should explain why you are hogtied and moving
 slowly down the conveyer belt towards the meat processing unit in Food
 Services.
 """
+            , next = [ cloneDies counters nextMsg ]
+            }, Cmd.none)
 
-            , style =
-                Next
-                    { model
-                    | pageRef =
-                        if counters.computerRequest then
-                            Page45
-
-                        else
-                            Page32
-                    , counters = newClone counters
-                    }
-            }
-
-        Page3 ->
-            { description = \_ -> """
+        Page3 counters ->
+            ({ description = """
 You walk to the nearest Computer terminal and request more information about
 Christmas.  The Computer says, "That is an A-1 ULTRAVIOLET ONLY IMMEDIATE
 TERMINATION classified topic.  What is your clearance please, Troubleshooter?"
 """
-            , style = Choice
-                [ ( "You give your correct clearance", { model | pageRef = Page4 } )
-                , ( "You lie and claim Ultraviolet clearance", { model | pageRef = Page5 } )
+            , next =
+                [ ( "You give your correct clearance", Page4 counters )
+                , ( "You lie and claim Ultraviolet clearance", Page5 counters )
                 ]
-            }
+            }, Cmd.none)
 
-        Page4 ->
-            { description = \_ -> """
+        Page4 counters ->
+            ({ description = """
 "That is classified information, Troubleshooter, thank you for your inquiry.
 Please report to an Internal Security self incrimination station as soon as
 possible."
 """
-            , style = Next { model | pageRef = Page9 }
-            }
+            , next = [ more <| Page9 counters ]
+            }, Cmd.none)
 
-        Page5 ->
-            { description = \_ -> """
+        Page5 counters ->
+            ({ description = """
 The computer says, "Troubleshooter, you are not wearing the correct colour
 uniform.  You must put on an Ultraviolet uniform immediately.  I have seen to
 your needs and ordered one already it will be here shortly.  Please wait with
@@ -272,14 +292,14 @@ your back to the wall until it arrives."  In less than a minute an infrared
 arrives carrying a white bundle.  He asks you to sign for it, then hands it to
 you and stands back, well outside of a fragmentation grenade's blast radius.
 """
-            , style = Choice
-                [ ( "You open the package and put on the uniform", { model | pageRef = Page6 } )
-                , ( "You finally come to your senses and run for it", { model | pageRef = Page7 } )
+            , next =
+                [ ( "You open the package and put on the uniform", Page6 counters )
+                , ( "You finally come to your senses and run for it", Page7 counters )
                 ]
-            }
+            }, Cmd.none)
 
-        Page6 ->
-            { description = \_ -> """
+        Page6 counters ->
+            ({ description = """
 The uniform definitely makes you look snappy and pert.  It really looks
 impressive, and even has the new lopsided lapel fashion that you admire so
 much.  What's more, citizens of all ranks come to obsequious attention as you
@@ -288,12 +308,12 @@ to like it, given time.
 
 The beeping computer terminal interrupts your musings.
 """
-            , style =
-                Next { model | pageRef = Page8, counters = { counters | ultraViolet = True } }
-            }
+            , next =
+                [ more <| Page8 { counters | ultraViolet = True } ]
+            }, Cmd.none)
 
-        Page7 ->
-            { description = \_ -> """
+        Page7 counters ->
+            ({ description = """
 The corridor lights dim and are replaced by red battle lamps as the Security
 Breach alarms howl all around you.  You run headlong down the corridor and
 desperately windmill around a corner, only to collide with a squad of 12 Blue
@@ -319,12 +339,12 @@ traitorously posing as an Ultraviolet, and don't you forget it!
 
 Suddenly, a computer terminal comes to life beside you.
 """
-            , style =
-                Next { model | pageRef = Page8, counters = { counters | ultraViolet = True } }
-            }
+            , next =
+                [ more <| Page8 { counters | ultraViolet = True } ]
+            }, Cmd.none)
 
-        Page8 ->
-            { description = \_ -> """
+        Page8 counters ->
+            ({ description = """
 "Now, about your question, citizen.  Christmas was an old world marketing ploy
 to induce lower clearance citizens to purchase vast quantities of goods, thus
 accumulation a large amount of credit under the control of a single class of
@@ -339,28 +359,28 @@ Thank you for your inquiry."
 
 You continue on your way to GDH7-beta.
 """
-            , style = Next { model | pageRef = Page10 }
-            }
+            , next = [ more <| Page10 counters ]
+            }, Cmd.none)
 
-        Page9 ->
-            { description = \_ -> """
+        Page9 counters ->
+            ({ description = """
 As you walk toward the tubecar that will take you to GDH7-beta, you pass one
 of the bright blue and orange Internal Security self incrimination stations.
 Inside, you can see an IS agent cheerfully greet an infrared citizen and then
 lead him at gunpoint into one of the rubber lined discussion rooms.
 """
-            , style = Choice
+            , next =
                 [ ( "You decide to stop here and chat, as ordered by The Computer"
-                  , { model | pageRef = Page2, counters = { counters | computerRequest = True } }
+                  , Page2 { counters | computerRequest = True }
                   )
                 , ( "You just continue blithely on past"
-                  , { model | pageRef = Page10, counters = { counters | computerRequest = False } }
+                  , Page10 counters
                   )
                 ]
-            }
+            }, Cmd.none)
 
-        Page10 ->
-            { description = \_ -> """
+        Page10 counters ->
+            ({ description = """
 You stroll briskly down the corridor, up a ladder, across an unrailed catwalk,
 under a perilously swinging blast door in urgent need of repair, and into
 tubecar grand central.  This is the bustling hub of Alpha Complex tubecar
@@ -369,60 +389,74 @@ and linear accelerators.  You bravely study the specially enhanced 3-D tube
 route map you wouldn't be the first Troubleshooter to take a fast tube ride
 to nowhere.
 """
-            , style =
+            , next =
                 let
                     condtionalChoices =
                         if counters.ultraViolet then
                             [ ( "You decide to ask The Computer about Christmas using a nearby terminal"
-                              , { model | pageRef = Page3 }
+                              , Page3 counters
                               )
                             ]
                         else
                             []
                 in
-                    Choice
-                        <|
-                        condtionalChoices ++
-                            [ ( "You think you have the route worked out, so you'll board a tube train"
-                              , { model | pageRef = Page10Tubecar, maybeDice = Just <| DiceNeeded 2 10 }
-                              )
-                            ]
+                    condtionalChoices ++
+                        [ ( "You think you have the route worked out, so you'll board a tube train"
+                          , Page10Tubecar counters
+                          )
+                        ]
 
-            }
+            }, Cmd.none)
 
-        Page10Tubecar ->
-            { description = \_ -> """
+        Page10Tubecar counters ->
+            ( model
+            , Random.generate (Page10TubecarResult counters) (rollDice 2 10)
+            )
+
+        Page10TubecarResult counters diceResult ->
+            let
+                success = List.sum diceResult < counters.moxie
+                successText = if success then "YES - you did it!" else "Uh oh!"
+                descriptionTemplate = """
 You nervously select a tubecar and step aboard.
-"""
-            , style =
-                case model.maybeDice of
-                    Just (DiceResult result) ->
-                        if List.sum result < counters.moxie then
-                            Choice
-                            [ ( "You just caught a purple line tubecar."
-                                , { model | pageRef = Page13 }
-                                )
-                            ]
-                        else
-                            Choice
-                            [ ( "You just caught a brown line tubecar."
-                                , { model | pageRef = Page48 }
-                                )
-                            ]
-                    _ -> -- this shouldn't happen
-                        End
-            }
 
-        Page11 ->
-            { description = \_ -> """
+Let's see if you can roll under your moxie ({0}). You roll two d10 - a {1}. {2}
+"""
+                description =
+                    interpolate
+                        descriptionTemplate
+                        [ String.fromInt counters.moxie
+                        , String.join " and a " <| List.map String.fromInt diceResult
+                        , successText
+                        ]
+            in
+            ({ description = description
+            , next =
+                if success then
+                    [ ( "You just caught a purple line tubecar."
+                      , Page13 counters
+                      )
+                    ]
+                else
+                    [ ( "You just caught a brown line tubecar."
+                      , Page48 counters
+                      )
+                    ]
+            }, Cmd.none)
+
+        Page11 counters ->
+            ({ description = """
 The printing on the folder says "Experimental Self Briefing."
 You open it and begin to read the following:
+
 Step 1: Compel the briefing subject to attend the briefing.
         Note: See Experimental Briefing Sub Form Indigo-WY-2,
         'Experimental Self Briefing Subject Acquisition Through The Use Of
         Neurotoxin Room Foggers.'
+
 Step 2: Inform the briefing subject that the briefing has begun.
         ATTENTION: THE BRIEFING HAS BEGUN.
+
 Step 3: Present the briefing material to the briefing subject.
         GREETINGS TROUBLESHOOTER.
         YOU HAVE BEEN SPECIALLY SELECTED TO SINGLEHANDEDLY
@@ -431,34 +465,36 @@ Step 3: Present the briefing material to the briefing subject.
         YOU FIND THERE.  YOU ARE TO INFILTRATE THESE CHRISTMAS CELEBRANTS,
         LOCATE THEIR RINGLEADER, AN UNKNOWN MASTER RETAILER, AND BRING HIM
         BACK FOR EXECUTION AND TRIAL.  THANK YOU.  THE COMPUTER IS YOUR FRIEND.
+
 Step 4: Sign the briefing subject's briefing release form to indicate that
         the briefing subject has completed the briefing.
         ATTENTION: PLEASE SIGN YOUR BRIEFING RELEASE FORM.
+
 Step 5: Terminate the briefing
         ATTENTION: THE BRIEFING IS TERMINATED.
 """
-            , style = Next { model | pageRef = Page11More }
-            }
+            , next = [ more <| Page11More counters ]
+            }, Cmd.none)
 
-        Page11More ->
-            { description = \_ -> """
+        Page11More counters ->
+            ({ description = """
 You walk to the door and hold your signed briefing release form up to the
 plexiglass window.  A guard scrutinises it for a moment and then slides back
 the megabolts holding the door shut.  You are now free to continue the
 mission.
 """
-            , style = Choice
+            , next =
                 [ ( "You wish to ask The Computer for more information about Christmas"
-                  , { model | pageRef = Page3 }
+                  , Page3 counters
                   )
                 , ( "You have decided to go directly to Goods Distribution Hall 7-beta"
-                  , { model | pageRef = Page10 }
+                  , Page10 counters
                   )
                 ]
-            }
+            }, Cmd.none)
 
-        Page12 ->
-            { description = \_ -> """
+        Page12 counters ->
+            ({ description = """
 You walk up to the door and push the button labelled "push to exit."
 Within seconds a surly looking guard shoves his face into the small plexiglass
 window.  You can see his mouth forming words but you can't hear any of them.
@@ -467,32 +503,33 @@ speaker on your side of the door.  When you put your ear to it you can barely
 hear him say, "Let's see your briefing release form, bud.  You aren't
 getting out of here without it."
 """
-            , style = Choice
+            , next =
                 [ ( "You sit down at the table and read the Orange packet"
-                  , { model | pageRef = Page11 }
+                  , Page11 counters
                   )
                 , ( "You stare around the room some more"
-                  , { model | pageRef = Page57 }
+                  , Page57 counters
                   )
                 ]
-            }
+            }, Cmd.none)
 
-        Page13 ->
-            { description = \_ -> """
+        Page13 counters ->
+            ({ description = """
 You step into the shiny plasteel tubecar, wondering why the shape has always
 reminded you of bullets.  The car shoots forward the instant your feet touch
 the slippery gray floor, pinning you immobile against the back wall as the
 tubecar careens toward GDH7-beta.  Your only solace is the knowledge that it
 could be worse, much worse.
+
 Before too long the car comes to a stop.  You can see signs for GDH7-beta
 through the window.  With a little practice you discover that you can crawl
 to the door and pull open the latch.
 """
-            , style = End
-            }
+            , next = [ more <| Page14 counters ]
+            }, Cmd.none)
 
-        Page14 ->
-            { description = \_ -> """
+        Page14 counters ->
+            ({ description = """
 You manage to pull yourself out of the tubecar and look around.  Before you is
 one of the most confusing things you have ever seen, a hallway that is
 simultaneously both red and green clearance.  If this is the result of
@@ -503,11 +540,11 @@ faced robots whiz back and forth selling toys to holiday shoppers, simul-plast
 wreaths hang from every light fixture, while ahead in the shadows is a citizen
 wearing a huge red synthetic flower.
 """
-            , style = End
-            }
+            , next = [ more <| Page22 counters ]
+            }, Cmd.none)
 
-        Page15 ->
-            { description = \_ -> """
+        Page15 counters ->
+            ({ description = """
 You are set upon by a runty robot with a queer looking face and two pointy
 rubber ears poking from beneath a tattered cap.  "Hey mister," it says,
 "you done all your last minute Christmas shopping?  I got some real neat junk
@@ -518,31 +555,102 @@ dolls are the neatest thing.  This one's got moveable arms and when you
 squeeze him, his little rifle squirts realistic looking napalm.  It's only
 50 credits.  Oh yeah, Merry Christmas."
 """
-            , style = End
-            }
+            , next =
+                [ ( "You decide to buy the doll.", Page16 counters)
+                , ( "You shoot the robot.", Page17 counters )
+                , ( "You ignore the robot and keep searching the hall.", Page22 counters )
+                ]
+            }, Cmd.none)
 
-        Page16 ->
-            { description = \_ -> """
+        Page16 counters ->
+            ({ description = """
 The doll is a good buy for fifty credits it will make a fine Christmas present
 for one of your friends.  After the sale, the robot rolls away.  You can use
 the doll later in combat.  It works just like a cone rifle firing napalm,
 except that occasionally it will explode and blow the user to smithereens.
 But don't let that stop you.
 """
-            , style = End
-            }
+            , next = [ more <| Page22 { counters | actionDoll = True } ]
+            }, Cmd.none)
 
-        Page17 ->
-            { description = \_ -> """
+        Page17 counters ->
+            ({ description = """
 You whip out your laser and shoot the robot, but not before it squeezes the
 toy at you.  The squeeze toy has the same effect as a cone rifle firing napalm,
 and the elfbot's armour has no effect against your laser.
 """
-            , style = End
-            }
+            , next = [("Fight!", Page17Fight counters 1 15)]
+            }, Cmd.none)
 
-        Page18 ->
-            { description = \_ -> """
+        Page17Fight counters round enemyHitPoints ->
+            let
+                rollsToMsg : DiceRolls -> Msg
+                rollsToMsg dr =
+                    Page17FightResult counters round enemyHitPoints dr.r1 dr.r2 dr.r3 dr.r4
+
+                gen : Random.Generator DiceRolls
+                gen =
+                     Random.map4 DiceRolls (Random.int 1 100) (Random.int 1 10) (Random.int 1 100) (rollDice 2 10)
+            in
+            ( model
+            , Random.generate rollsToMsg gen
+            )
+
+        Page17FightResult counters round enemyHitPoints playerHitRoll playerDamageRoll enemyHitRoll enemyDamageRolls ->
+            let
+                checkHit : Int -> Int -> Int -> Int -> AttackResult
+                checkHit skill hitPoints hitRoll damageRoll =
+                    if playerHitRoll <= skill then
+                        let
+                            newHitPoints = hitPoints - damageRoll
+                        in
+                            if newHitPoints <= 0 then
+                                Dead
+                            else
+                                Injured newHitPoints
+                    else
+                        Missed
+
+                (description1, newCounters) =
+                    case checkHit 25 counters.hitPoints playerHitRoll playerDamageRoll of
+                        Dead ->
+                            (["You have been hit!"], { counters | hitPoints = 0 })
+                        Injured newPlayerHitPoints ->
+                            (["You have been hit!"], { counters | hitPoints = newPlayerHitPoints })
+                        Missed ->
+                            (["It missed you, but not by much!"], counters)
+
+                (description2, nextMsg) =
+                    if newCounters.hitPoints == 0 then
+                        ([], cloneDies counters <| Page45 { counters | hitPoints = 0 })
+                    else
+                        case checkHit 40 enemyHitPoints enemyHitRoll (List.sum enemyDamageRolls) of
+                            Dead ->
+                                let
+                                    (lineEnd, newerCounters) =
+                                        if newCounters.hitPoints < 10 then
+                                            (" after the GDH medbot has patched you up.", {newCounters | hitPoints = 10})
+                                        else
+                                            (".", newCounters)
+                                in
+                                ( ["You zapped the little bastard!", "You wasted it! Good shooting!", "You will need more evidence, so you search GDH7-beta further" ++ lineEnd]
+                                , more <| Page22 newerCounters
+                                )
+                            Injured newEnemyHitPoints ->
+                                (["You zapped the little bastard!"]
+                                , more <| Page17Fight newCounters (round + 1) newEnemyHitPoints
+                                )
+                            Missed ->
+                                (["Damn! You missed!"]
+                                , more <| Page17Fight newCounters (round + 1) enemyHitPoints
+                                )
+            in
+            ({ description = description1 ++ description2 |> String.join "\n"
+            , next = [ nextMsg ]
+            }, Cmd.none)
+
+        Page18 counters ->
+            ({ description = """
 You walk to the centre of the hall, ogling like an infrared fresh from the
 clone vats.  Towering before you is the most unearthly thing you have ever
 seen, a green multi armed mutant horror hulking 15 feet above your head.
@@ -552,14 +660,57 @@ creature is wrapped in a thousand blinking hazard lights.  It's times like
 this when you wish you'd had some training for this job.  Luckily the
 creature doesn't take notice of you but stands unmoving, as though waiting for
 a summons from its dark lord, the Master Retailer.
-
-WHAM, suddenly you are struck from behind.
 """
-            , style = End
-            }
+            , next = [ more <| Page18Balance counters ]
+            }, Cmd.none)
 
-        Page19 ->
-            { description = \_ -> """
+        Page18Balance counters ->
+            ( model
+            , Random.generate (Page18BalanceResult counters) (rollDice 2 10)
+            )
+
+        Page18BalanceResult counters diceResult ->
+            let
+                success = List.sum diceResult < counters.agility
+                successText = if success then "YES - you did it!" else "Uh oh!"
+                descriptionTemplate = """
+WHAM, suddenly you are struck from behind.
+
+Let's see if you can roll under your agility ({0}). You roll two d10 - a {1}. {2}
+"""
+                description =
+                    interpolate
+                        descriptionTemplate
+                        [ String.fromInt counters.agility
+                        , String.join " and a " <| List.map String.fromInt diceResult
+                        , successText
+                        ]
+            in
+            ({ description = description
+            , next =
+                if success then
+                    [ more <| Page19 counters
+                    ]
+                else
+                    [ more <| Page20 counters
+                    ]
+            }, Cmd.none)
+
+        Page19 counters ->
+            let
+                newCounters = { counters | killerCount = counters.killerCount + 1 }
+                next =
+                    if newCounters.killerCount > counters.maxKill - counters.clone then
+                        [ more <| Page19KilledTooMany newCounters ]
+                    else
+                        if counters.readLetter then
+                            [ more <| Page22 newCounters ]
+                        else
+                            [ ("You search the body, keeping an eye open for Internal Security", Page34 counters )
+                            , ("You run away like the cowardly dog you are", Page22 counters )
+                            ]
+            in
+            ({ description = """
 Quickly you regain your balance, whirl and fire your laser into the Ultraviolet
 citizen behind you.  For a moment your heart leaps to your throat, then you
 realise that he is indeed dead and you will be the only one filing a report on
@@ -568,11 +719,29 @@ shopping, as is evident from the rain of shoddy toys falling all around you.
 
 Another valorous deed done in the service of The Computer!
 """
-            , style = End
-            }
+            , next = next
+            }, Cmd.none)
 
-        Page20 ->
-            { description = \_ -> """
+        Page19KilledTooMany counters ->
+            let
+                nextMsg =
+                    case maybeNewClone counters of
+                        Nothing ->
+                            YouLose
+                        Just newCloneCounters ->
+                            Page45 newCloneCounters
+            in
+            ({ description = """
+You have been wasting the leading citizens of Alpha Complex at a prodigious
+rate.  This has not gone unnoticed by the Internal Security squad at GDH7-beta.
+Suddenly, a net of laser beams spear out of the gloomy corners of the hall,
+chopping you into teeny, weeny bite size pieces.
+"""
+            , next = [ cloneDies counters nextMsg ]
+            }, Cmd.none)
+
+        Page20 counters ->
+            ({ description = """
 Oh no! you can't keep your balance.  You're falling, falling head first into
 the Christmas beast's gaping maw.  It's a valiant struggle you think you are
 gone when its poisonous needles dig into your flesh, but with a heroic effort
@@ -581,83 +750,120 @@ spine.  The Christmas beast topples to the ground and begins to burn, filling
 the area with a thick acrid smoke.  It takes only a moment to compose yourself,
 and then you are ready to continue your search for the Master Retailer.
 """
-            , style = End
-            }
+            , next = [ more <| Page22 counters ]
+            }, Cmd.none)
 
-        Page21 ->
-            { description = \_ -> """
-You have been wasting the leading citizens of Alpha Complex at a prodigious
-rate.  This has not gone unnoticed by the Internal Security squad at GDH7-beta.
-Suddenly, a net of laser beams spear out of the gloomy corners of the hall,
-chopping you into teeny, weeny bite size pieces.
+        Page21 counters ->
+            ({ description = """
+Suddenly a large florescent sign pops up from the ground. It reads "SCENARIO
+THIS WAY" and points off between two rows of caroling elfbots.
 """
-            , style = End
-            }
+            , next =
+                [ ("Follow the sign", Page29 counters)
+                , ("Ignore the sign", Page22 counters)
+                ]
+            }, Cmd.none)
 
-        Page22 ->
-            { description = \_ -> """
+        Page22 counters ->
+            ( model
+            , Random.generate (Page22RandomEncounterResult counters) (Random.int 1 4)
+            )
+
+        Page22RandomEncounterResult counters diceResult ->
+            let
+                next =
+                    case diceResult of
+                        1 -> Page18 counters
+                        2 -> Page15 counters
+                        3 -> Page21 counters
+                        _ -> Page29 counters
+
+            in
+            ({ description = """
 You are searching Goods Distribution Hall 7-beta.
 """
-            , style = End
-            }
+            , next = [ more next]
+            }, Cmd.none)
 
-        Page23 ->
-            { description = \_ -> """
+
+        Page23 counters ->
+            ({ description = """
 You go to the nearest computer terminal and declare yourself a mutant.
 "A mutant, he's a mutant," yells a previously unnoticed infrared who had
 been looking over your shoulder.  You easily gun him down, but not before a
 dozen more citizens take notice and aim their weapons at you.
 """
-            , style = End
-            }
+            , next =
+                [ ( "You tell them that it was really only a bad joke", Page28 counters )
+                , ( "You want to fight it out, one against twelve", Page24 counters )
+                ]
+            }, Cmd.none)
 
-        Page24 ->
-            { description = \_ -> """
+        Page24 counters ->
+            ({ description = """
 Golly, I never expected someone to pick this.  I haven't even designed
 the 12 citizens who are going to make a sponge out of you.  Tell you what,
 I'll give you a second chance.
 """
-            , style = End
-            }
+            , next =
+                [ ( "You change your mind and say it was only a bad joke", Page28 counters )
+                , ( "You REALLY want to shoot it out", Page25 counters )
+                ]
+            }, Cmd.none)
 
-        Page25 ->
-            { description = \_ -> """
+        Page25 counters ->
+            ({ description = """
 Boy, you really can't take a hint!
 They're closing in.  Their trigger fingers are twitching, they're about to
 shoot.  This is your last chance.
 """
-            , style = End
-            }
+            , next =
+                [ ( "You tell them it was all just a bad joke", Page28 counters )
+                , ( "You are going to shoot", Page26 counters )
+                ]
+            }, Cmd.none)
 
-        Page26 ->
-            { description = \_ -> """
+        Page26 counters ->
+            let
+                nextMsg =
+                    case maybeNewClone counters of
+                        Nothing ->
+                            YouLose
+                        Just newCloneCounters ->
+                            Page32 newCloneCounters
+            in
+            ({ description = """
 You can read the cold, sober hatred in their eyes (They really didn't think
 it was funny), as they tighten the circle around you.  One of them shoves a
 blaster up your nose, but that doesn't hurt as much as the multi-gigawatt
 carbonium tipped food drill in the small of your back.
 You spend the remaining micro-seconds of your life wondering what you did wrong
 """
-            , style = End
-            }
+            , next = [ cloneDies counters nextMsg ]
+            }, Cmd.none)
 
-        Page28 ->
-            { description = \_ -> """
+        Page28 counters ->
+            ({ description = """
 They don't think it's funny.
 """
-            , style = End
-            }
+            , next = [ more <| Page26 counters ]
+            }, Cmd.none)
 
-        Page29 ->
-            { description = \_ -> """
+        Page29 counters ->
+            ({ description = """
 "Psst, hey citizen, come here.  Pssfft," you hear.  When you peer around
 you can see someone's dim outline in the shadows.  "I got some information
 on the Master Retailer.  It'll only cost you 30 psst credits."
 """
-            , style = End
-            }
+            , next =
+                [ ("You pay the 30 credits for the info.", Page30 counters)
+                , ("You would rather threaten him for the information.", Page31 counters)
+                , ("You ignore him and walk away.", Page22 counters)
+                ]
+            }, Cmd.none)
 
-        Page30 ->
-            { description = \_ -> """
+        Page30 counters ->
+            ({ description = """
 You step into the shadows and offer the man a thirty credit bill.  "Just drop
 it on the floor," he says.  "So you're looking for the Master Retailer, pssfft?
 I've seen him, he's a fat man in a fuzzy red and white jump suit.  They say
@@ -671,11 +877,15 @@ warning sign.  WARNING!! Don't open this door or the same thing will happen to
 you.  Opening this door is a capital offense.  Do not do it.  Not at all. This
 is not a joke.
 """
-            , style = End
-            }
+            , next =
+                [ ("You use your Precognition mutant power on opening the door.", Page56 counters)
+                , ("You just go through the door anyway.", Page33 counters)
+                , ("You decide it's too dangerous and walk away.", Page22 counters)
+                ]
+            }, Cmd.none)
 
-        Page31 ->
-            { description = \_ -> """
+        Page31 counters ->
+            ({ description = """
 Like any good troubleshooter you make the least expensive decision and threaten
 him for information.  With lightning like reflexes you whip out your laser and
 stick it up his nose.  "Talk, you traitorous Christmas celebrator, or who nose
@@ -685,22 +895,25 @@ made of one eighth inch cardboard and your laser is sticking through the other
 side of his head.  "Are you going to pay?" says his mouth speaker,
 "or are you going to pssfft go away stupid?"
 """
-            , style = End
-            }
+            , next =
+                [ ("You pay the 30 credits", Page30 counters)
+                , ("You pssfft go away stupid", Page22 counters)
+                ]
+            }, Cmd.none)
 
-        Page32 ->
-            { description = \_ -> """
+        Page32 counters ->
+            ({ description = """
 Finally it's your big chance to prove that you're as good a troubleshooter
 as your previous clone.  You walk briskly to mission briefing and pick up your
 previous clone's personal effects and notepad.  After reviewing the notes you
 know what has to be done.  You catch the purple line to Goods Distribution Hall
 7-beta and begin to search for the blast door.
 """
-            , style = End
-            }
+            , next = [ more <| Page22 counters ]
+            }, Cmd.none)
 
-        Page33 ->
-            { description = \_ -> """
+        Page33 counters ->
+            ({ description = """
 You release the megabolts on the blast door, then strain against it with your
 awesome strength.  Slowly the door creaks open.  You bravely leap through the
 opening and smack your head into the barrel of a 300 mm 'ultra shock' class
@@ -708,11 +921,19 @@ plasma cannon.  It's dark in the barrel now, but just before your head got
 stuck you can remember seeing a group of technicians anxiously watch you leap
 into the room.
 """
-            , style = End
-            }
+            , next =
+                let
+                    newCounters = { counters | blastDoor = True }
+                in
+                if counters.ultraViolet then
+                    [ more <| Page35 newCounters ]
+                else
+                    [ more <| Page36 newCounters ]
+            }, Cmd.none)
 
-        Page34 ->
-            { description = \_ -> """
+        Page34 counters ->
+
+            ({ description = """
 You have found a sealed envelope on the body.  You open it and read:
 "WARNING: Ultraviolet Clearance ONLY.  DO NOT READ.
 
@@ -733,22 +954,36 @@ never serve the interests of the proletariat above their own bourgeois desires.
 P.S. I'm doing some Christmas shopping later today.  Would you like me to pick
 you up something?"
 """
-            , style = Next { model | pageRef = Page34More }
-            }
+            , next = [ more <| Page34More counters ]
+            }, Cmd.none)
 
-        Page34More ->
-            { description = \_ -> """
+        Page34More counters ->
+            ({ description = """
 When you put down the memo you are overcome by that strange deja'vu again.
 You see yourself talking privately with The Computer.  You are telling it all
 about the communists' plan, and then the scene shifts and you see yourself
 showered with awards for foiling the insidious communist plot to take over the
 complex.
 """
-            , style = End
-            }
+            , next =
+                let
+                    newCounters = { counters | readLetter = True }
+                in
+                [ ("You rush off to the nearest computer terminal to expose the commies", Page46 newCounters)
+                , ("You wander off to look for more evidence", Page22 newCounters)
+                ]
+            }, Cmd.none)
 
-        Page35 ->
-            { description = \_ -> """
+        Page35 counters ->
+            let
+                nextMsg =
+                    case maybeNewClone counters of
+                        Nothing ->
+                            YouLose
+                        Just newCloneCounters ->
+                            Page32 newCloneCounters
+            in
+            ({ description = """
 "Oh master," you hear through the gun barrel, "where have you been? It is
 time for the great Christmas gifting ceremony.  You had better hurry and get
 the costume on or the trainee may begin to suspect."  For the second time
@@ -764,11 +999,11 @@ here, the Master Retailer himself with his head caught in his own cannon.  His
 death will serve as a symbol of freedom for all Alpha Complex.
 Fire the cannon."
 """
-            , style = End
-            }
+            , next = [ cloneDies counters nextMsg ]
+            }, Cmd.none)
 
-        Page36 ->
-            { description = \_ -> """
+        Page36 counters ->
+            ({ description = """
 "Congratulations, troubleshooter, you have successfully found the lair of the
 Master Retailer and completed the Troubleshooter Training Course test mission,"
 a muffled voice tells you through the barrel.  "Once we dislodge your head
@@ -777,11 +1012,15 @@ training seminars, the first of which will concern the 100% accurate
 identification and elimination of unregistered mutants.  If you have any
 objections please voice them now."
 """
-            , style = End
-            }
+            , next =
+                [ ("You appreciate his courtesy and voice an objection.", Page32 counters)
+                , ("After your head is removed from the cannon, you register as a mutant.", Page23 counters)
+                , ("After your head is removed from the cannon, you go to the unregistered mutant identification and elimination seminar.", Page37 counters)
+                ]
+            }, Cmd.none)
 
-        Page37 ->
-            { description = \_ -> """
+        Page37 counters ->
+            ({ description = """
 "Come with me please, Troubleshooter," says the Green clearance technician
 after he has dislodged your head from the cannon.  "You have been participating
 in the Troubleshooter Training Course since you got off the tube car in
@@ -794,12 +1033,13 @@ There is only one other student here, a Troubleshooter near the front row
 playing with his Action Troubleshooter(tm) figure.  "Find a seat and I will
 begin," says the instructor.
 """
-            , style = End
-            }
+            , next = [ more <| Page38 counters]
+            }, Cmd.none)
 
-        Page38 ->
-            { description = \_ -> """
-"I am Plato-B-PHI %d, head of mutant propaganda here at the training
+        Page38 counters ->
+            let
+                description = """
+"I am Plato-B-PHI {0}, head of mutant propaganda here at the training
 course.
 
 If you have any questions about mutants please come to me.  Today I will be
@@ -815,14 +1055,21 @@ they are discovered.  Who would like to volunteer for a test?"
 
 The Troubleshooter down the front squirms deeper into his chair.
 """
-            , style = End
-            }
+            in
 
-        Page39 ->
-            { description = \_ -> """
+            ({ description = interpolate description [ String.fromInt counters.platoClone ]
+            , next =
+                [ ("You volunteer for the test", Page39 counters)
+                , ("You duck behind a chair and hope the instructor doesn't notice you", Page40 counters)
+                ]
+            }, Cmd.none)
+
+        Page39 counters ->
+            let
+                description = """
 You bravely volunteer to test the mutant detection gun.  You stand up and walk
 down the steps to the podium, passing a very relieved Troubleshooter along the
-way. When you reach the podium Plato-B-PHI %d hands you the mutant detection gun
+way. When you reach the podium Plato-B-PHI {0} hands you the mutant detection gun
 and says, "Here, aim the gun at that Troubleshooter and push the small button.
 If you see a purple light, stun him."  Grasping the opportunity to prove your
 worth to The Computer, you fire the mutant detection ray at the Troubleshooter.
@@ -835,29 +1082,59 @@ of mutant detection and elimination.  You can go on to the secret society
 infiltration class.  I'll see that the little mutie gets packaged for
 tomorrow's mutant dissection class."
 """
-            , style = End
-            }
+            in
+            ({ description = interpolate description [ String.fromInt counters.platoClone ]
+            , next = [ more <| Page41 counters ]
+            }, Cmd.none)
 
-        Page40 ->
-            { description = \_ -> """
-You breathe a sigh of relief as Plato-B-PHI %d picks on the other Troubleshooter.
+        Page40 counters ->
+            let
+                description = """
+You breathe a sigh of relief as Plato-B-PHI {0} picks on the other Troubleshooter.
 "You down here in the front," says the instructor pointing at the other
 Troubleshooter, "you'll make a good volunteer.  Please step forward."
 The Troubleshooter looks around with a 'who me?' expression on his face, but
 since he is the only one visible in the audience he figures his number is up.
 He walks down to the podium clutching his Action Troubleshooter(tm) doll before
-him like a weapon.  "Here," says Plato-B-PHI %d, "take the mutant detection ray
+him like a weapon.  "Here," says Plato-B-PHI {0}, "take the mutant detection ray
 and point it at the audience.  If there are any mutants out there we'll know
 soon enough."  Suddenly your skin prickles with static electricity as a bright
 purple nimbus surrounds your body.  "Ha Ha, got one," says the instructor.
 
 "Stun him before he gets away."
 """
-            , style = End
-            }
+            in
+            ({ description = interpolate description [ String.fromInt counters.platoClone ]
+            , next = [("Fight!", Page40Fight counters)]
+            }, Cmd.none)
 
-        Page41 ->
-            { description = \_ -> """
+        Page40Fight counters ->
+            let
+                gen : Random.Generator (Int, Int)
+                gen =
+                    Random.pair (Random.int 1 100) (Random.int 1 100)
+            in
+            ( model
+            , Random.generate (\(r1, r2) -> Page40FightResult counters r1 r2) gen
+            )
+
+        Page40FightResult counters playerHitRoll enemyHitRoll ->
+            let
+                (description, nextMsg) =
+                    if playerHitRoll <= 30 then
+                        ("His shot hits you.  You feel numb all over.", more <| Page49 counters)
+                    else
+                        if enemyHitRoll <= 40 then
+                            ("His shot just missed.\n\nYou just blew his head off.  His lifeless hand drops the mutant detector ray.", more <| Page50 counters)
+                        else
+                            ("His shot just missed.\n\nYou burnt a hole in the podium.  He sights the mutant detector ray on you.", more <| Page40Fight counters)
+            in
+            ({ description = description
+             , next = [nextMsg]
+             }, Cmd.none)
+
+        Page41 counters ->
+            ({ description = """
 You stumble down the hallway of the Troubleshooter Training Course looking for
 your next class.  Up ahead you see one of the instructors waving to you.  When
 you get there he shakes your hand and says, "I am Jung-I-PSY.  Welcome to the
@@ -869,22 +1146,28 @@ would feel if you put a neuro whip in a high energy palm massage unit.
 It doesn't take you long to learn what he is up to you feel him briefly shake
 your hand with the secret Illuminati handshake.
 """
-            , style = End
-            }
+            , next =
+                [ ("You respond with the proper Illuminati code phrase, \"Ewige Blumenkraft\"", Page42 counters)
+                , ("You ignore this secret society contact", Page43 counters)
+                ]
+            }, Cmd.none)
 
-        Page42 ->
-            { description = \_ -> """
+        Page42 counters ->
+            ({ description = """
 "Aha, so you are a member of the elitist Illuminati secret society," he says
 loudly, "that is most interesting."  He turns to the large class already
 seated in the auditorium and says, "You see, class, by simply using the correct
 hand shake you can identify the member of any secret society.  Please keep your
 weapons trained on him while I call a guard.
 """
-            , style = End
-            }
+            , next =
+                [ ("You run for it", Page51 counters)
+                , ("You wait for the guard", Page52 counters)
+                ]
+            }, Cmd.none)
 
-        Page43 ->
-            { description = \_ -> """
+        Page43 counters ->
+            ({ description = """
 You sit through a long lecture on how to recognise and infiltrate secret
 societies, with an emphasis on mimicking secret handshakes.  The basic theory,
 which you realise to be sound from your Iluminati training, is that with the
@@ -897,19 +1180,31 @@ to practice many different handshakes.  Afterwards everyone is directed to
 attend the graduation ceremony.  Before you must go you have a little time to
 talk to The Computer about, you know, certain topics.
 """
-            , style = End
-            }
+            , next =
+                [ ("You go looking for a computer terminal", Page44 counters)
+                , ("You go to the graduation ceremony immediately", Page55 counters)
+                ]
+            }, Cmd.none)
 
-        Page44 ->
-            { description = \_ -> """
+        Page44 counters ->
+            ({ description = """
 You walk down to a semi-secluded part of the training course complex and
 activate a computer terminal.  "AT YOUR SERVICE" reads the computer screen.
 """
-            , style = End
-            }
+            , next =
+                if counters.readLetter then
+                    [ ("You register yourself as a mutant.", Page23 counters)
+                    , ("You want to chat about the commies.", Page46 counters)
+                    , ("You change your mind and go to the graduation ceremony.", Page55 counters)
+                    ]
+                else
+                    [ ("You register yourself as a mutant.", Page23 counters)
+                    , ("You change your mind and go to the graduation ceremony.", Page55 counters)
+                    ]
+            }, Cmd.none)
 
-        Page45 ->
-            { description = \_ -> """
+        Page45 counters ->
+            ({ description = """
 "Hrank Hrank," snorts the alarm in your living quarters.  Something is up.
 You look at the monitor above the bathroom mirror and see the message you have
 been waiting for all these years.  "ATTENTION TROUBLESHOOTER, YOU ARE BEING
@@ -920,20 +1215,23 @@ remaining possessions and notebook.  You puzzle through your predecessor's
 cryptic notes, managing to decipher enough to lead you to the tube station and
 the tube car to GDH7-beta.
 """
-            , style = End
-            }
+            , next = [ more <| Page10 counters]
+            }, Cmd.none)
 
-        Page46 ->
-            { description = \_ -> """
+        Page46 counters ->
+            ({ description = """
 "Why do you ask about the communists, Troubleshooter?  It is not in the
 interest of your continued survival to be asking about such topics," says
 The Computer.
 """
-            , style = End
-            }
+            , next =
+                [ ("You insist on talking about the communists", Page53 counters)
+                , ("You change the subject", Page54 counters)
+                ]
+            }, Cmd.none)
 
-        Page47 ->
-            { description = \_ -> """
+        Page47 counters ->
+            ({ description = """
 The Computer orders the entire Vulture squadron to terminate the Troubleshooter
 Training Course.  Unfortunately you too are terminated for possessing
 classified information.
@@ -945,62 +1243,100 @@ Don't look to me for sympathy.
 
 			THE END
 """
-            , style = End
-            }
+            , next = [ restart ]
+            }, Cmd.none)
 
-        Page48 ->
-            { description = \_ -> """
+        Page48 counters ->
+            let
+                nextMsg =
+                    case maybeNewClone counters of
+                        Nothing ->
+                            YouLose
+                        Just newCloneCounters ->
+                            Page45 newCloneCounters
+            in
+            ({ description = """
 The tubecar shoots forward as you enter, slamming you back into a pile of
 garbage.  The front end rotates upward and you, the garbage and the garbage
 disposal car shoot straight up out of Alpha Complex.  One of the last things
 you see is a small blue sphere slowly dwindling behind you.  After you fail to
 report in, you will be assumed dead.
 """
-            , style = End
-            }
+            , next = [ cloneDies counters nextMsg ]
+            }, Cmd.none)
 
-        Page49 ->
-            { description = \_ -> """
+        Page49 counters ->
+            let
+                nextMsg =
+                    case maybeNewClone counters of
+                        Nothing ->
+                            YouLose
+                        Just newCloneCounters ->
+                            Page32 newCloneCounters
+            in
+            ({ description = """
 The instructor drags your inert body into a specimen detainment cage.
 "He'll make a good subject for tomorrow's mutant dissection class," you hear.
 """
-            , style = End
-            }
+            , next = [ cloneDies counters nextMsg ]
+            }, Cmd.none)
 
-        Page50 ->
-            { description = \_ -> """
+        Page50 counters ->
+            ({ description = """
 You put down the other Troubleshooter, and then wisely decide to drill a few
 holes in the instructor as well the only good witness is a dead witness.
 You continue with the training course.
 """
-            , style = End
-            }
+            , next = [more <| Page41 {counters | platoClone = counters.platoClone + 1}]
+            }, Cmd.none)
 
-        Page51 ->
-            { description = \_ -> """
+        Page51 counters ->
+            let
+                nextMsg =
+                    case maybeNewClone counters of
+                        Nothing ->
+                            YouLose
+                        Just newCloneCounters ->
+                            Page32 newCloneCounters
+            in
+            ({ description = """
 You run for it, but you don't run far.  Three hundred strange and exotic
 weapons turn you into a freeze dried cloud of soot.
 """
-            , style = End
-            }
+            , next = [ cloneDies counters nextMsg ]
+            }, Cmd.none)
 
-        Page52 ->
-            { description = \_ -> """
+        Page52 counters ->
+            ({ description = """
 You wisely wait until the instructor returns with a Blue Internal Security
 guard.  The guard leads you to an Internal Security self incrimination station.
 """
-            , style = End
-            }
+            , next = [more <| Page2 counters]
+            }, Cmd.none)
 
-        Page53 ->
-            { description = \_ -> """
+        Page53 counters ->
+            ({ description = """
 You tell The Computer about:
 """
-            , style = End
-            }
+            , next =
+                [ ("The commies who have infiltrated the Troubleshooter Training Course and the impending People's Revolution", Page47 counters)
+                , ("Something less dangerous", Page54 counters)
+                ]
+            }, Cmd.none)
 
-        Page54 ->
-            { description = \_ -> """
+        Page54 counters ->
+            let
+                nextMsg =
+                    case maybeNewClone counters of
+                        Nothing ->
+                            YouLose
+                        Just newCloneCounters ->
+                            if counters.blastDoor then
+                                Page32 newCloneCounters
+                            else
+                                Page45 newCloneCounters
+            in
+            ({ description = """
 "Do not try to change the subject, Troubleshooter," says The Computer.
 "It is a serious crime to ask about the communists.  You will be terminated
 immediately.  Thank you for your inquiry.  The Computer is your friend."
@@ -1010,11 +1346,11 @@ the speaker above your head rapidly repeats "Traitor, Traitor, Traitor."
 It doesn't take long for a few guards to notice your predicament and come to
 finish you off.
 """
-            , style = End
-            }
+            , next = [ cloneDies counters nextMsg ]
+            }, Cmd.none)
 
-        Page55 ->
-            { description = \_ -> """
+        Page55 counters ->
+            ({ description = """
 You and 300 other excited graduates are marched from the lecture hall and into
 a large auditorium for the graduation exercise.  The auditorium is
 extravagantly decorated in the colours of the graduating class.  Great red and
@@ -1030,14 +1366,15 @@ persevered and graduated.  Good luck and die trying."  Then the instructor
 begins reading the names of the students who one by one walk to the front of
 the auditorium and receive their diplomas.
 """
-            , style = Next { model | pageRef = Page55More }
-            }
+            , next = [ more <| Page55More counters ]
+            }, Cmd.none)
 
-        Page55More ->
-            { description = \_ -> """
+        Page55More counters ->
+            let
+                description = """
 Soon it is your turn, "Philo-R-DMD, graduating a master of mutant
 identification and secret society infiltration."  You walk up and receive your
-diploma from Plato-B-PHI %d, then return to your seat.  There is another speech
+diploma from Plato-B-PHI {0}, then return to your seat.  There is another speech
 after the diplomas are handed out, but it is cut short by by rapid
 fire laser bursts from the high spirited graduating class.  You are free to
 return to your barracks to wait, trained and fully qualified, for your next
@@ -1046,44 +1383,45 @@ society.  In a week you receive a detailed Training Course bill totalling
 1,523 credits.
 
 			THE END
-""" --CHECK
-            , style = End
-            }
+"""
+            in
+            ({ description = interpolate description [String.fromInt counters.platoClone]
+            , next = [ restart ]
+            }, Cmd.none)
 
-        Page56 ->
-            { description = \_ -> """
+        Page56 counters ->
+            ({ description = """
 That familiar strange feeling of déjà vu envelops you again.  It is hard to
 say, but whatever is on the other side of the door does not seem to be intended
 for you.
 """
-            , style = End
-            }
+            , next =
+                [ ("You open the door and step through", Page33 counters)
+                , ("You go looking for more information", Page22 counters)
+                ]
+            }, Cmd.none)
 
-        Page57 ->
-            { description = \_ -> """
+        Page57 counters ->
+            ({ description = """
 In the centre of the room is a table and a single chair.  There is an Orange
 folder on the table top, but you can't make out the lettering on it.
 """
-            , style = Choice
-                [ ( "You sit down and read the folder"
-                  , { model | pageRef = Page11 }
-                  )
-                , ( "You leave the room"
-                  , { model | pageRef = Page12 }
-                  )
+            , next =
+                [ ( "You sit down and read the folder", Page11 counters)
+                , ( "You leave the room", Page12 counters)
                 ]
-            }
+            }, Cmd.none)
 
         YouLose ->
-            { description = \_ -> """
+            ({ description = """
 *** You Lose ***
 
 All your clones are dead.  Your name has been stricken from the records.
 
 THE END
 """
-            , style = End
-            }
+            , next = [ restart ]
+            }, Cmd.none)
 
 initCounters =
     { moxie = 13
@@ -1101,19 +1439,8 @@ initCounters =
     }
 
 
-initModel : Model
-initModel =
-    { pageRef = Instructions
-    , counters = initCounters
-    , maybeDice = Nothing
-    }
-
 init : () -> (Model, Cmd Msg)
-init _ = (initModel, Cmd.none)
-
-
--- main =
---     Browser.sandbox { init = init, update = update, view = view }
+init _ = (instructionsModel, Cmd.none)
 
 
 main =
@@ -1125,36 +1452,9 @@ main =
         }
 
 
-update : Msg -> Model -> (Model, Cmd Msg)
-update msg model =
-    case msg of
-        GotDiceResult result ->
-            ({ model | maybeDice = Just <| DiceResult result }, Cmd.none)
-
-        ChangePage pageRef ->
-            let
-                cmd =
-                    case model.maybeDice of
-                        Just (DiceNeeded num sides) ->
-                            Random.generate GotDiceResult (Random.list num (Random.int 1 sides))
-                        _ ->
-                            Cmd.none
-
-            in
-            ({ model | pageRef = pageRef }, cmd)
-        ChangeModel newModel ->
-            ( newModel, Cmd.none)
-        NewClone ->
-            ({ model | counters = newClone model.counters }, Cmd.none)
-        Restart ->
-            (initModel, Cmd.none)
-
-
-
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
-
 
 
 preFormattedElement : String -> Element msg
@@ -1171,62 +1471,21 @@ preFormattedElement text =
 view : Model -> Html Msg
 view model =
     Element.layout [] <|
-        Element.textColumn [ spacing 10, padding 10 ] <|
+        Element.textColumn [ spacingXY 10 30, padding 10 ] <|
             let
-                page =
-                    getPage model
                 descriptionPara =
                     paragraph []
-                        [ preFormattedElement <| page.description model.counters ]
+                        [ preFormattedElement <| model.description ]
                 otherParas =
-                    case page.style of
-                        Next newModel ->
-                            [ paragraph []
+                    List.map
+                        (\(linkText, msg) ->
+                            paragraph []
                                 [ button []
-                                    { onPress = Just <| ChangeModel newModel
-                                    , label = Element.text "Next"
+                                    { onPress = Just <| msg
+                                    , label = Element.text linkText
                                     }
                                 ]
-                            ]
-
-                        Choice choices ->
-                            List.map
-                                (\(description, newModel) ->
-                                    paragraph []
-                                        [ button []
-                                            { onPress = Just <| ChangeModel newModel
-                                            , label = Element.text description
-                                            }
-                                        ]
-                                )
-                                <| choices
-
-                        -- Logic fun ->
-                        --     [ paragraph []
-                        --         [ button []
-                        --             { onPress = Just <| ChangeModel <| fun model
-                        --             , label = Element.text "More"
-                        --             }
-                        --         ]
-                        --     ]
-
-                        CloneDies ->
-                            [ paragraph []
-                                [ button []
-                                    { onPress = Just <| NewClone
-                                    , label = Element.text "New clone"
-                                    }
-                                ]
-                            ]
-
-                        End ->
-                            [ paragraph []
-                                [ button []
-                                    { onPress = Just <| Restart
-                                    , label = Element.text "Restart"
-                                    }
-                                ]
-                            ]
-
+                        )
+                        <| model.next
             in
             descriptionPara :: otherParas
