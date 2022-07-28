@@ -134,17 +134,17 @@ Primary Attributes                      Secondary Attributes
 Strength ..................... 13       Carrying Capacity ................. 30
 Endurance .................... 13       Damage Bonus ....................... 0
 Agility ...................... 15       Macho Bonus ....................... -1
-Manual Dexterity ............. 15       Melee Bonus ...................... +5%%
-Moxie ........................ 13       Aimed Weapon Bonus .............. +10%%
-Chutzpah ...................... 8       Comprehension Bonus .............. +4%%
-Mechanical Aptitude .......... 14       Believability Bonus .............. +5%%
-Power Index .................. 10       Repair Bonus ..................... +5%%
+Manual Dexterity ............. 15       Melee Bonus ...................... +5%
+Moxie ........................ 13       Aimed Weapon Bonus .............. +10%
+Chutzpah ...................... 8       Comprehension Bonus .............. +4%
+Mechanical Aptitude .......... 14       Believability Bonus .............. +5%
+Power Index .................. 10       Repair Bonus ..................... +5%
 ===============================================================================
 Credits: 160        Secret Society: Illuminati        Secret Society Rank: 1
 Service Group: Power Services               Mutant Power: Precognition
-Weapon: laser pistol to hit, 40%% type, L Range, 50m Reload, 6r Malfnt, 00
-Skills: Basics 1(20%%), Aimed Weapon Combat 2(35%%), Laser 3(40%%),
-        Personal Development 1(20%%), Communications 2(29%%), Intimidation 3(34%%)
+Weapon: laser pistol to hit, 40% type, L Range, 50m Reload, 6r Malfnt, 00
+Skills: Basics 1(20%), Aimed Weapon Combat 2(35%), Laser 3(40%),
+        Personal Development 1(20%), Communications 2(29%), Intimidation 3(34%)
 Equipment: Red Reflec Armour, Laser Pistol, Laser Barrel (red),
            Notebook & Stylus, Knife, Com Unit 1, Jump suit,
            Secret Illuminati Eye-In-The-Pyramid(tm) Decoder ring,
