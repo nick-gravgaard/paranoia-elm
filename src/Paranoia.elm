@@ -698,72 +698,89 @@ and the elfbot's armour has no effect against your laser.
 
         Page17FightResult round enemyHitPoints playerHitRoll playerDamageRoll enemyHitRoll enemyDamageRolls ->
             let
-                checkHit : Int -> Int -> Int -> Int -> AttackResult
-                checkHit skill hitPoints hitRoll damageRoll =
-                    if hitRoll <= skill then
-                        let
-                            newHitPoints =
-                                hitPoints - damageRoll
-                        in
-                        if newHitPoints <= 0 then
-                            Dead
+                heal : Counters -> (String, Counters)
+                heal c =
+                    if c.hitPoints < 10 then
+                        ( " after the GDH medbot has patched you up.", { c | hitPoints = 10 } )
+
+                    else
+                        ( ".", c )
+            in
+            if round <= 2 then
+                let
+                    checkHit : Int -> Int -> Int -> Int -> AttackResult
+                    checkHit skill hitPoints hitRoll damageRoll =
+                        if hitRoll <= skill then
+                            let
+                                newHitPoints =
+                                    hitPoints - damageRoll
+                            in
+                            if newHitPoints <= 0 then
+                                Dead
+
+                            else
+                                Injured newHitPoints
 
                         else
-                            Injured newHitPoints
+                            Missed
 
-                    else
-                        Missed
-
-                ( description1, newCounters ) =
-                    case checkHit 25 counters.hitPoints playerHitRoll playerDamageRoll of
-                        Dead ->
-                            ( [ "You have been hit!" ], { counters | hitPoints = 0 } )
-
-                        Injured newPlayerHitPoints ->
-                            ( [ "You have been hit!" ], { counters | hitPoints = newPlayerHitPoints } )
-
-                        Missed ->
-                            ( [ "It missed you, but not by much!" ], counters )
-
-                ( description2, nextMsg, newerCounters ) =
-                    if newCounters.hitPoints == 0 then
-                        ( [], cloneDies counters <| Page45, newCounters)
-
-                    else
-                        case checkHit 40 enemyHitPoints enemyHitRoll (List.sum enemyDamageRolls) of
+                    ( description1, newCounters ) =
+                        case checkHit 25 counters.hitPoints playerHitRoll playerDamageRoll of
                             Dead ->
-                                let
-                                    ( lineEnd, healedCounters ) =
-                                        if newCounters.hitPoints < 10 then
-                                            ( " after the GDH medbot has patched you up.", { newCounters | hitPoints = 10 } )
+                                ( [ "You have been hit!" ], { counters | hitPoints = 0 } )
 
-                                        else
-                                            ( ".", newCounters )
-                                in
-                                ( [ "You zapped the little bastard!", "You wasted it! Good shooting!", "You will need more evidence, so you search GDH7-beta further" ++ lineEnd ]
-                                , next Page22
-                                , healedCounters
-                                )
-
-                            Injured newEnemyHitPoints ->
-                                ( [ "You zapped the little bastard!" ]
-                                , next <| Page17Fight (round + 1) newEnemyHitPoints
-                                , newCounters
-                                )
+                            Injured newPlayerHitPoints ->
+                                ( [ "You have been hit!" ], { counters | hitPoints = newPlayerHitPoints } )
 
                             Missed ->
-                                ( [ "Damn! You missed!" ]
-                                , next <| Page17Fight (round + 1) enemyHitPoints
-                                , newCounters
-                                )
-            in
-            ( { description = description1 ++ description2 |> String.join "\n"
-              , choices = nextMsg
-              , counters = newerCounters
-              , showCharSheet = False
-              }
-            , Cmd.none
-            )
+                                ( [ "It missed you, but not by much!" ], counters )
+
+                    ( description2, nextMsg, newerCounters ) =
+                        if newCounters.hitPoints == 0 then
+                            ( [], cloneDies counters <| Page45, newCounters)
+
+                        else
+                            case checkHit 40 enemyHitPoints enemyHitRoll (List.sum enemyDamageRolls) of
+                                Dead ->
+                                    let
+                                        ( lineEnd, healedCounters ) = heal newCounters
+                                    in
+                                    ( [ "You zapped the little bastard!", "You wasted it! Good shooting!", "You will need more evidence, so you search GDH7-beta further" ++ lineEnd ]
+                                    , next Page22
+                                    , healedCounters
+                                    )
+
+                                Injured newEnemyHitPoints ->
+                                    ( [ "You zapped the little bastard!" ]
+                                    , next <| Page17Fight (round + 1) newEnemyHitPoints
+                                    , newCounters
+                                    )
+
+                                Missed ->
+                                    ( [ "Damn! You missed!" ]
+                                    , next <| Page17Fight (round + 1) enemyHitPoints
+                                    , newCounters
+                                    )
+                in
+                ( { description = description1 ++ description2 |> String.join "\n"
+                , choices = nextMsg
+                , counters = newerCounters
+                , showCharSheet = False
+                }
+                , Cmd.none
+                )
+            else
+                let
+                    ( lineEnd, healedCounters ) = heal counters
+                in
+                ( { description = [ "It tried to fire again, but the toy exploded and demolished it.", "You will need more evidence, so you search GDH7-beta further" ++ lineEnd ] |> String.join "\n"
+                , choices = next Page22
+                , counters = healedCounters
+                , showCharSheet = False
+                }
+                , Cmd.none
+                )
+
 
         Page18 ->
             ( { description = """
