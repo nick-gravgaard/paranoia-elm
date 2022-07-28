@@ -104,7 +104,7 @@ type alias Counters =
 
 type alias Model =
     { description : String
-    , next : List ( String, Msg )
+    , choices : List ( String, Msg )
     }
 
 
@@ -122,8 +122,8 @@ type AttackResult
     | Missed
 
 
-charsheet : Int -> String
-charsheet clone =
+charsheet : Counters -> String
+charsheet counters =
     interpolate """
 ===============================================================================
 The Character : Philo-R-DMD {0}
@@ -148,7 +148,7 @@ Equipment: Red Reflec Armour, Laser Pistol, Laser Barrel (red),
            Secret Illuminati Eye-In-The-Pyramid(tm) Decoder ring,
            Utility Belt & Pouches
 ===============================================================================
-""" [ String.fromInt clone ]
+""" [ String.fromInt counters.clone ]
 
 
 maybeNewClone : Counters -> Maybe Counters
@@ -201,7 +201,6 @@ HOW TO PLAY:
    Just press <Enter> until you are asked to make a choice.
    Select 'a' or 'b' or whatever for your choice, then press <Enter>.
    You may select 'p' at any time to get a display of your statistics.
-   You may select 'r' at any time to re-read the page.
    Always choose the least dangerous option.  Continue doing this until
    you win. At times you will use a skill or engage in combat and will
    be informed of the outcome.  These sections will be self explanatory.
@@ -218,7 +217,7 @@ HOW TO WIN:
    If you make it, congratulations.
    If not, you can try again later.
 """
-    , next = [ more <| Page1 initCounters ]
+    , choices = [ more <| Page1 initCounters ]
     }
 
 
@@ -235,7 +234,7 @@ You recognise the pattern, it's the type preferred in the internal security
 briefing cells.  When you finally look around you, you see that you are alone
 in a large mission briefing room.
 """
-              , next = [ more <| Page57 counters ]
+              , choices = [ more <| Page57 counters ]
               }
             , Cmd.none
             )
@@ -268,7 +267,7 @@ distrust of The Computer.  This should explain why you are hogtied and moving
 slowly down the conveyer belt towards the meat processing unit in Food
 Services.
 """
-              , next = [ cloneDies counters nextMsg ]
+              , choices = [ cloneDies counters nextMsg ]
               }
             , Cmd.none
             )
@@ -279,7 +278,7 @@ You walk to the nearest Computer terminal and request more information about
 Christmas.  The Computer says, "That is an A-1 ULTRAVIOLET ONLY IMMEDIATE
 TERMINATION classified topic.  What is your clearance please, Troubleshooter?"
 """
-              , next =
+              , choices =
                     [ ( "You give your correct clearance", Page4 counters )
                     , ( "You lie and claim Ultraviolet clearance", Page5 counters )
                     ]
@@ -293,7 +292,7 @@ TERMINATION classified topic.  What is your clearance please, Troubleshooter?"
 Please report to an Internal Security self incrimination station as soon as
 possible."
 """
-              , next = [ more <| Page9 counters ]
+              , choices = [ more <| Page9 counters ]
               }
             , Cmd.none
             )
@@ -307,7 +306,7 @@ your back to the wall until it arrives."  In less than a minute an infrared
 arrives carrying a white bundle.  He asks you to sign for it, then hands it to
 you and stands back, well outside of a fragmentation grenade's blast radius.
 """
-              , next =
+              , choices =
                     [ ( "You open the package and put on the uniform", Page6 counters )
                     , ( "You finally come to your senses and run for it", Page7 counters )
                     ]
@@ -325,7 +324,7 @@ to like it, given time.
 
 The beeping computer terminal interrupts your musings.
 """
-              , next =
+              , choices =
                     [ more <| Page8 { counters | ultraViolet = True } ]
               }
             , Cmd.none
@@ -358,7 +357,7 @@ traitorously posing as an Ultraviolet, and don't you forget it!
 
 Suddenly, a computer terminal comes to life beside you.
 """
-              , next =
+              , choices =
                     [ more <| Page8 { counters | ultraViolet = True } ]
               }
             , Cmd.none
@@ -380,7 +379,7 @@ Thank you for your inquiry."
 
 You continue on your way to GDH7-beta.
 """
-              , next = [ more <| Page10 counters ]
+              , choices = [ more <| Page10 counters ]
               }
             , Cmd.none
             )
@@ -392,7 +391,7 @@ of the bright blue and orange Internal Security self incrimination stations.
 Inside, you can see an IS agent cheerfully greet an infrared citizen and then
 lead him at gunpoint into one of the rubber lined discussion rooms.
 """
-              , next =
+              , choices =
                     [ ( "You decide to stop here and chat, as ordered by The Computer"
                       , Page2 { counters | computerRequest = True }
                       )
@@ -414,7 +413,7 @@ and linear accelerators.  You bravely study the specially enhanced 3-D tube
 route map you wouldn't be the first Troubleshooter to take a fast tube ride
 to nowhere.
 """
-              , next =
+              , choices =
                     let
                         condtionalChoices =
                             if counters.ultraViolet then
@@ -468,7 +467,7 @@ Let's see if you can roll under your moxie ({0}). You roll two d10 - a {1}. {2}
                         ]
             in
             ( { description = description
-              , next =
+              , choices =
                     if success then
                         [ ( "You just caught a purple line tubecar."
                           , Page13 counters
@@ -513,7 +512,7 @@ Step 4: Sign the briefing subject's briefing release form to indicate that
 Step 5: Terminate the briefing
         ATTENTION: THE BRIEFING IS TERMINATED.
 """
-              , next = [ more <| Page11More counters ]
+              , choices = [ more <| Page11More counters ]
               }
             , Cmd.none
             )
@@ -525,7 +524,7 @@ plexiglass window.  A guard scrutinises it for a moment and then slides back
 the megabolts holding the door shut.  You are now free to continue the
 mission.
 """
-              , next =
+              , choices =
                     [ ( "You wish to ask The Computer for more information about Christmas"
                       , Page3 counters
                       )
@@ -547,7 +546,7 @@ speaker on your side of the door.  When you put your ear to it you can barely
 hear him say, "Let's see your briefing release form, bud.  You aren't
 getting out of here without it."
 """
-              , next =
+              , choices =
                     [ ( "You sit down at the table and read the Orange packet"
                       , Page11 counters
                       )
@@ -571,7 +570,7 @@ Before too long the car comes to a stop.  You can see signs for GDH7-beta
 through the window.  With a little practice you discover that you can crawl
 to the door and pull open the latch.
 """
-              , next = [ more <| Page14 counters ]
+              , choices = [ more <| Page14 counters ]
               }
             , Cmd.none
             )
@@ -588,7 +587,7 @@ faced robots whiz back and forth selling toys to holiday shoppers, simul-plast
 wreaths hang from every light fixture, while ahead in the shadows is a citizen
 wearing a huge red synthetic flower.
 """
-              , next = [ more <| Page22 counters ]
+              , choices = [ more <| Page22 counters ]
               }
             , Cmd.none
             )
@@ -605,7 +604,7 @@ dolls are the neatest thing.  This one's got moveable arms and when you
 squeeze him, his little rifle squirts realistic looking napalm.  It's only
 50 credits.  Oh yeah, Merry Christmas."
 """
-              , next =
+              , choices =
                     [ ( "You decide to buy the doll.", Page16 counters )
                     , ( "You shoot the robot.", Page17 counters )
                     , ( "You ignore the robot and keep searching the hall.", Page22 counters )
@@ -622,7 +621,7 @@ the doll later in combat.  It works just like a cone rifle firing napalm,
 except that occasionally it will explode and blow the user to smithereens.
 But don't let that stop you.
 """
-              , next = [ more <| Page22 { counters | actionDoll = True } ]
+              , choices = [ more <| Page22 { counters | actionDoll = True } ]
               }
             , Cmd.none
             )
@@ -633,7 +632,7 @@ You whip out your laser and shoot the robot, but not before it squeezes the
 toy at you.  The squeeze toy has the same effect as a cone rifle firing napalm,
 and the elfbot's armour has no effect against your laser.
 """
-              , next = [ ( "Fight!", Page17Fight counters 1 15 ) ]
+              , choices = [ ( "Fight!", Page17Fight counters 1 15 ) ]
               }
             , Cmd.none
             )
@@ -711,7 +710,7 @@ and the elfbot's armour has no effect against your laser.
                                 )
             in
             ( { description = description1 ++ description2 |> String.join "\n"
-              , next = [ nextMsg ]
+              , choices = [ nextMsg ]
               }
             , Cmd.none
             )
@@ -728,7 +727,7 @@ this when you wish you'd had some training for this job.  Luckily the
 creature doesn't take notice of you but stands unmoving, as though waiting for
 a summons from its dark lord, the Master Retailer.
 """
-              , next = [ more <| Page18Balance counters ]
+              , choices = [ more <| Page18Balance counters ]
               }
             , Cmd.none
             )
@@ -766,7 +765,7 @@ Let's see if you can roll under your agility ({0}). You roll two d10 - a {1}. {2
                         ]
             in
             ( { description = description
-              , next =
+              , choices =
                     if success then
                         [ more <| Page19 counters
                         ]
@@ -804,7 +803,7 @@ shopping, as is evident from the rain of shoddy toys falling all around you.
 
 Another valorous deed done in the service of The Computer!
 """
-              , next = next
+              , choices = next
               }
             , Cmd.none
             )
@@ -825,7 +824,7 @@ rate.  This has not gone unnoticed by the Internal Security squad at GDH7-beta.
 Suddenly, a net of laser beams spear out of the gloomy corners of the hall,
 chopping you into teeny, weeny bite size pieces.
 """
-              , next = [ cloneDies counters nextMsg ]
+              , choices = [ cloneDies counters nextMsg ]
               }
             , Cmd.none
             )
@@ -840,7 +839,7 @@ spine.  The Christmas beast topples to the ground and begins to burn, filling
 the area with a thick acrid smoke.  It takes only a moment to compose yourself,
 and then you are ready to continue your search for the Master Retailer.
 """
-              , next = [ more <| Page22 counters ]
+              , choices = [ more <| Page22 counters ]
               }
             , Cmd.none
             )
@@ -850,7 +849,7 @@ and then you are ready to continue your search for the Master Retailer.
 Suddenly a large florescent sign pops up from the ground. It reads "SCENARIO
 THIS WAY" and points off between two rows of caroling elfbots.
 """
-              , next =
+              , choices =
                     [ ( "Follow the sign", Page29 counters )
                     , ( "Ignore the sign", Page22 counters )
                     ]
@@ -882,7 +881,7 @@ THIS WAY" and points off between two rows of caroling elfbots.
             ( { description = """
 You are searching Goods Distribution Hall 7-beta.
 """
-              , next = [ more next ]
+              , choices = [ more next ]
               }
             , Cmd.none
             )
@@ -894,7 +893,7 @@ You go to the nearest computer terminal and declare yourself a mutant.
 been looking over your shoulder.  You easily gun him down, but not before a
 dozen more citizens take notice and aim their weapons at you.
 """
-              , next =
+              , choices =
                     [ ( "You tell them that it was really only a bad joke", Page28 counters )
                     , ( "You want to fight it out, one against twelve", Page24 counters )
                     ]
@@ -908,7 +907,7 @@ Golly, I never expected someone to pick this.  I haven't even designed
 the 12 citizens who are going to make a sponge out of you.  Tell you what,
 I'll give you a second chance.
 """
-              , next =
+              , choices =
                     [ ( "You change your mind and say it was only a bad joke", Page28 counters )
                     , ( "You REALLY want to shoot it out", Page25 counters )
                     ]
@@ -922,7 +921,7 @@ Boy, you really can't take a hint!
 They're closing in.  Their trigger fingers are twitching, they're about to
 shoot.  This is your last chance.
 """
-              , next =
+              , choices =
                     [ ( "You tell them it was all just a bad joke", Page28 counters )
                     , ( "You are going to shoot", Page26 counters )
                     ]
@@ -947,7 +946,7 @@ blaster up your nose, but that doesn't hurt as much as the multi-gigawatt
 carbonium tipped food drill in the small of your back.
 You spend the remaining micro-seconds of your life wondering what you did wrong
 """
-              , next = [ cloneDies counters nextMsg ]
+              , choices = [ cloneDies counters nextMsg ]
               }
             , Cmd.none
             )
@@ -956,7 +955,7 @@ You spend the remaining micro-seconds of your life wondering what you did wrong
             ( { description = """
 They don't think it's funny.
 """
-              , next = [ more <| Page26 counters ]
+              , choices = [ more <| Page26 counters ]
               }
             , Cmd.none
             )
@@ -967,7 +966,7 @@ They don't think it's funny.
 you can see someone's dim outline in the shadows.  "I got some information
 on the Master Retailer.  It'll only cost you 30 psst credits."
 """
-              , next =
+              , choices =
                     [ ( "You pay the 30 credits for the info.", Page30 counters )
                     , ( "You would rather threaten him for the information.", Page31 counters )
                     , ( "You ignore him and walk away.", Page22 counters )
@@ -991,7 +990,7 @@ warning sign.  WARNING!! Don't open this door or the same thing will happen to
 you.  Opening this door is a capital offense.  Do not do it.  Not at all. This
 is not a joke.
 """
-              , next =
+              , choices =
                     [ ( "You use your Precognition mutant power on opening the door.", Page56 counters )
                     , ( "You just go through the door anyway.", Page33 counters )
                     , ( "You decide it's too dangerous and walk away.", Page22 counters )
@@ -1011,7 +1010,7 @@ made of one eighth inch cardboard and your laser is sticking through the other
 side of his head.  "Are you going to pay?" says his mouth speaker,
 "or are you going to pssfft go away stupid?"
 """
-              , next =
+              , choices =
                     [ ( "You pay the 30 credits", Page30 counters )
                     , ( "You pssfft go away stupid", Page22 counters )
                     ]
@@ -1027,7 +1026,7 @@ previous clone's personal effects and notepad.  After reviewing the notes you
 know what has to be done.  You catch the purple line to Goods Distribution Hall
 7-beta and begin to search for the blast door.
 """
-              , next = [ more <| Page22 counters ]
+              , choices = [ more <| Page22 counters ]
               }
             , Cmd.none
             )
@@ -1041,7 +1040,7 @@ plasma cannon.  It's dark in the barrel now, but just before your head got
 stuck you can remember seeing a group of technicians anxiously watch you leap
 into the room.
 """
-              , next =
+              , choices =
                     let
                         newCounters =
                             { counters | blastDoor = True }
@@ -1077,7 +1076,7 @@ never serve the interests of the proletariat above their own bourgeois desires.
 P.S. I'm doing some Christmas shopping later today.  Would you like me to pick
 you up something?"
 """
-              , next = [ more <| Page34More counters ]
+              , choices = [ more <| Page34More counters ]
               }
             , Cmd.none
             )
@@ -1090,7 +1089,7 @@ about the communists' plan, and then the scene shifts and you see yourself
 showered with awards for foiling the insidious communist plot to take over the
 complex.
 """
-              , next =
+              , choices =
                     let
                         newCounters =
                             { counters | readLetter = True }
@@ -1130,7 +1129,7 @@ here, the Master Retailer himself with his head caught in his own cannon.  His
 death will serve as a symbol of freedom for all Alpha Complex.
 Fire the cannon."
 """
-              , next = [ cloneDies counters nextMsg ]
+              , choices = [ cloneDies counters nextMsg ]
               }
             , Cmd.none
             )
@@ -1145,7 +1144,7 @@ training seminars, the first of which will concern the 100% accurate
 identification and elimination of unregistered mutants.  If you have any
 objections please voice them now."
 """
-              , next =
+              , choices =
                     [ ( "You appreciate his courtesy and voice an objection.", Page32 counters )
                     , ( "After your head is removed from the cannon, you register as a mutant.", Page23 counters )
                     , ( "After your head is removed from the cannon, you go to the unregistered mutant identification and elimination seminar.", Page37 counters )
@@ -1168,7 +1167,7 @@ There is only one other student here, a Troubleshooter near the front row
 playing with his Action Troubleshooter(tm) figure.  "Find a seat and I will
 begin," says the instructor.
 """
-              , next = [ more <| Page38 counters ]
+              , choices = [ more <| Page38 counters ]
               }
             , Cmd.none
             )
@@ -1195,7 +1194,7 @@ The Troubleshooter down the front squirms deeper into his chair.
 """
             in
             ( { description = interpolate description [ String.fromInt counters.platoClone ]
-              , next =
+              , choices =
                     [ ( "You volunteer for the test", Page39 counters )
                     , ( "You duck behind a chair and hope the instructor doesn't notice you", Page40 counters )
                     ]
@@ -1224,7 +1223,7 @@ tomorrow's mutant dissection class."
 """
             in
             ( { description = interpolate description [ String.fromInt counters.platoClone ]
-              , next = [ more <| Page41 counters ]
+              , choices = [ more <| Page41 counters ]
               }
             , Cmd.none
             )
@@ -1247,7 +1246,7 @@ purple nimbus surrounds your body.  "Ha Ha, got one," says the instructor.
 """
             in
             ( { description = interpolate description [ String.fromInt counters.platoClone ]
-              , next = [ ( "Fight!", Page40Fight counters ) ]
+              , choices = [ ( "Fight!", Page40Fight counters ) ]
               }
             , Cmd.none
             )
@@ -1275,7 +1274,7 @@ purple nimbus surrounds your body.  "Ha Ha, got one," says the instructor.
                         ( "His shot just missed.\n\nYou burnt a hole in the podium.  He sights the mutant detector ray on you.", more <| Page40Fight counters )
             in
             ( { description = description
-              , next = [ nextMsg ]
+              , choices = [ nextMsg ]
               }
             , Cmd.none
             )
@@ -1293,7 +1292,7 @@ would feel if you put a neuro whip in a high energy palm massage unit.
 It doesn't take you long to learn what he is up to you feel him briefly shake
 your hand with the secret Illuminati handshake.
 """
-              , next =
+              , choices =
                     [ ( "You respond with the proper Illuminati code phrase, \"Ewige Blumenkraft\"", Page42 counters )
                     , ( "You ignore this secret society contact", Page43 counters )
                     ]
@@ -1309,7 +1308,7 @@ seated in the auditorium and says, "You see, class, by simply using the correct
 hand shake you can identify the member of any secret society.  Please keep your
 weapons trained on him while I call a guard.
 """
-              , next =
+              , choices =
                     [ ( "You run for it", Page51 counters )
                     , ( "You wait for the guard", Page52 counters )
                     ]
@@ -1331,7 +1330,7 @@ to practice many different handshakes.  Afterwards everyone is directed to
 attend the graduation ceremony.  Before you must go you have a little time to
 talk to The Computer about, you know, certain topics.
 """
-              , next =
+              , choices =
                     [ ( "You go looking for a computer terminal", Page44 counters )
                     , ( "You go to the graduation ceremony immediately", Page55 counters )
                     ]
@@ -1344,7 +1343,7 @@ talk to The Computer about, you know, certain topics.
 You walk down to a semi-secluded part of the training course complex and
 activate a computer terminal.  "AT YOUR SERVICE" reads the computer screen.
 """
-              , next =
+              , choices =
                     if counters.readLetter then
                         [ ( "You register yourself as a mutant.", Page23 counters )
                         , ( "You want to chat about the commies.", Page46 counters )
@@ -1371,7 +1370,7 @@ remaining possessions and notebook.  You puzzle through your predecessor's
 cryptic notes, managing to decipher enough to lead you to the tube station and
 the tube car to GDH7-beta.
 """
-              , next = [ more <| Page10 counters ]
+              , choices = [ more <| Page10 counters ]
               }
             , Cmd.none
             )
@@ -1382,7 +1381,7 @@ the tube car to GDH7-beta.
 interest of your continued survival to be asking about such topics," says
 The Computer.
 """
-              , next =
+              , choices =
                     [ ( "You insist on talking about the communists", Page53 counters )
                     , ( "You change the subject", Page54 counters )
                     ]
@@ -1403,7 +1402,7 @@ Don't look to me for sympathy.
 
 \t\t\tTHE END
 """
-              , next = [ restart ]
+              , choices = [ restart ]
               }
             , Cmd.none
             )
@@ -1425,7 +1424,7 @@ disposal car shoot straight up out of Alpha Complex.  One of the last things
 you see is a small blue sphere slowly dwindling behind you.  After you fail to
 report in, you will be assumed dead.
 """
-              , next = [ cloneDies counters nextMsg ]
+              , choices = [ cloneDies counters nextMsg ]
               }
             , Cmd.none
             )
@@ -1444,7 +1443,7 @@ report in, you will be assumed dead.
 The instructor drags your inert body into a specimen detainment cage.
 "He'll make a good subject for tomorrow's mutant dissection class," you hear.
 """
-              , next = [ cloneDies counters nextMsg ]
+              , choices = [ cloneDies counters nextMsg ]
               }
             , Cmd.none
             )
@@ -1455,7 +1454,7 @@ You put down the other Troubleshooter, and then wisely decide to drill a few
 holes in the instructor as well the only good witness is a dead witness.
 You continue with the training course.
 """
-              , next = [ more <| Page41 { counters | platoClone = counters.platoClone + 1 } ]
+              , choices = [ more <| Page41 { counters | platoClone = counters.platoClone + 1 } ]
               }
             , Cmd.none
             )
@@ -1474,7 +1473,7 @@ You continue with the training course.
 You run for it, but you don't run far.  Three hundred strange and exotic
 weapons turn you into a freeze dried cloud of soot.
 """
-              , next = [ cloneDies counters nextMsg ]
+              , choices = [ cloneDies counters nextMsg ]
               }
             , Cmd.none
             )
@@ -1484,7 +1483,7 @@ weapons turn you into a freeze dried cloud of soot.
 You wisely wait until the instructor returns with a Blue Internal Security
 guard.  The guard leads you to an Internal Security self incrimination station.
 """
-              , next = [ more <| Page2 counters ]
+              , choices = [ more <| Page2 counters ]
               }
             , Cmd.none
             )
@@ -1493,7 +1492,7 @@ guard.  The guard leads you to an Internal Security self incrimination station.
             ( { description = """
 You tell The Computer about:
 """
-              , next =
+              , choices =
                     [ ( "The commies who have infiltrated the Troubleshooter Training Course and the impending People's Revolution", Page47 counters )
                     , ( "Something less dangerous", Page54 counters )
                     ]
@@ -1526,7 +1525,7 @@ the speaker above your head rapidly repeats "Traitor, Traitor, Traitor."
 It doesn't take long for a few guards to notice your predicament and come to
 finish you off.
 """
-              , next = [ cloneDies counters nextMsg ]
+              , choices = [ cloneDies counters nextMsg ]
               }
             , Cmd.none
             )
@@ -1548,7 +1547,7 @@ persevered and graduated.  Good luck and die trying."  Then the instructor
 begins reading the names of the students who one by one walk to the front of
 the auditorium and receive their diplomas.
 """
-              , next = [ more <| Page55More counters ]
+              , choices = [ more <| Page55More counters ]
               }
             , Cmd.none
             )
@@ -1571,7 +1570,7 @@ society.  In a week you receive a detailed Training Course bill totalling
 """
             in
             ( { description = interpolate description [ String.fromInt counters.platoClone ]
-              , next = [ restart ]
+              , choices = [ restart ]
               }
             , Cmd.none
             )
@@ -1582,7 +1581,7 @@ That familiar strange feeling of deja vu envelops you again.  It is hard to
 say, but whatever is on the other side of the door does not seem to be intended
 for you.
 """
-              , next =
+              , choices =
                     [ ( "You open the door and step through", Page33 counters )
                     , ( "You go looking for more information", Page22 counters )
                     ]
@@ -1595,7 +1594,7 @@ for you.
 In the centre of the room is a table and a single chair.  There is an Orange
 folder on the table top, but you can't make out the lettering on it.
 """
-              , next =
+              , choices =
                     [ ( "You sit down and read the folder", Page11 counters )
                     , ( "You leave the room", Page12 counters )
                     ]
@@ -1611,7 +1610,7 @@ All your clones are dead.  Your name has been stricken from the records.
 
 THE END
 """
-              , next = [ restart ]
+              , choices = [ restart ]
               }
             , Cmd.none
             )
@@ -1683,6 +1682,6 @@ view model =
                                 ]
                         )
                     <|
-                        model.next
+                        model.choices
             in
             descriptionPara :: otherParas
