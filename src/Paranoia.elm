@@ -169,19 +169,24 @@ maybeNewClone counters =
             }
 
 
-cloneDies : Counters -> Msg -> ( String, Msg )
+cloneDies : Counters -> Msg -> List ( String, Msg )
 cloneDies counters msg =
-    ( interpolate "Clone {0} just died." [ String.fromInt counters.clone ], msg )
+    [ ( interpolate "Clone {0} just died." [ String.fromInt counters.clone ], msg ) ]
 
 
-more : Msg -> ( String, Msg )
+next : Msg -> List ( String, Msg )
+next msg =
+    [ ( "Next", msg ) ]
+
+
+more : Msg -> List ( String, Msg )
 more msg =
-    ( "More...", msg )
+    [ ( "More...", msg ) ]
 
 
-restart : ( String, Msg )
+restart : List ( String, Msg )
 restart =
-    ( "Restart", Instructions )
+    [ ( "Restart", Instructions ) ]
 
 
 rollDice : Int -> Int -> Random.Generator (List Int)
@@ -189,9 +194,13 @@ rollDice num sides =
     Random.list num (Random.int 1 sides)
 
 
-withCmdNone : Model -> ( Model, Cmd Msg )
-withCmdNone model =
-    ( model, Cmd.none )
+successText : Bool -> String
+successText success =
+    if success then
+        "YES - you did it!"
+
+    else
+        "Uh oh!"
 
 
 instructionsModel : Model
@@ -219,7 +228,7 @@ HOW TO WIN:
    If you make it, congratulations.
    If not, you can try again later.
 """
-    , choices = [ more Page1 ]
+    , choices = next Page1
     , counters = initCounters
     , showCharSheet = False
     }
@@ -241,7 +250,7 @@ You recognise the pattern, it's the type preferred in the internal security
 briefing cells.  When you finally look around you, you see that you are alone
 in a large mission briefing room.
 """
-              , choices = [ more Page57 ]
+              , choices = next Page57
               , counters = counters
               , showCharSheet = False
               }
@@ -276,7 +285,7 @@ distrust of The Computer.  This should explain why you are hogtied and moving
 slowly down the conveyer belt towards the meat processing unit in Food
 Services.
 """
-              , choices = [ cloneDies c nextMsg ]
+              , choices = cloneDies c nextMsg
               , counters = newCounters
               , showCharSheet = False
               }
@@ -305,7 +314,7 @@ TERMINATION classified topic.  What is your clearance please, Troubleshooter?"
 Please report to an Internal Security self incrimination station as soon as
 possible."
 """
-              , choices = [ more Page9 ]
+              , choices = next Page9
               , counters = counters
               , showCharSheet = False
               }
@@ -341,8 +350,7 @@ to like it, given time.
 
 The beeping computer terminal interrupts your musings.
 """
-              , choices =
-                    [ more <| Page8 ]
+              , choices = next Page8
               , counters = { counters | ultraViolet = True }
               , showCharSheet = False
               }
@@ -376,8 +384,7 @@ traitorously posing as an Ultraviolet, and don't you forget it!
 
 Suddenly, a computer terminal comes to life beside you.
 """
-              , choices =
-                    [ more <| Page8 ]
+              , choices = next Page8
               , counters = { counters | ultraViolet = True }
               , showCharSheet = False
               }
@@ -400,7 +407,7 @@ Thank you for your inquiry."
 
 You continue on your way to GDH7-beta.
 """
-              , choices = [ more Page10 ]
+              , choices = next Page10
               , counters = counters
               , showCharSheet = False
               }
@@ -471,13 +478,6 @@ to nowhere.
                 success =
                     List.sum diceResult < counters.moxie
 
-                successText =
-                    if success then
-                        "YES - you did it!"
-
-                    else
-                        "Uh oh!"
-
                 descriptionTemplate =
                     """
 You nervously select a tubecar and step aboard.
@@ -490,7 +490,7 @@ Let's see if you can roll under your moxie ({0}). You roll two d10 - a {1}. {2}
                         descriptionTemplate
                         [ String.fromInt counters.moxie
                         , String.join " and a " <| List.map String.fromInt diceResult
-                        , successText
+                        , successText success
                         ]
             in
             ( { description = description
@@ -541,7 +541,7 @@ Step 4: Sign the briefing subject's briefing release form to indicate that
 Step 5: Terminate the briefing
         ATTENTION: THE BRIEFING IS TERMINATED.
 """
-              , choices = [ more Page11More ]
+              , choices = more Page11More
               , counters = counters
               , showCharSheet = False
               }
@@ -605,7 +605,7 @@ Before too long the car comes to a stop.  You can see signs for GDH7-beta
 through the window.  With a little practice you discover that you can crawl
 to the door and pull open the latch.
 """
-              , choices = [ more Page14 ]
+              , choices = next Page14
               , counters = counters
               , showCharSheet = False
               }
@@ -624,7 +624,7 @@ faced robots whiz back and forth selling toys to holiday shoppers, simul-plast
 wreaths hang from every light fixture, while ahead in the shadows is a citizen
 wearing a huge red synthetic flower.
 """
-              , choices = [ more Page22 ]
+              , choices = next Page22
               , counters = counters
               , showCharSheet = False
               }
@@ -662,7 +662,7 @@ the doll later in combat.  It works just like a cone rifle firing napalm,
 except that occasionally it will explode and blow the user to smithereens.
 But don't let that stop you.
 """
-              , choices = [ more Page22 ]
+              , choices = next Page22
               , counters = { counters | actionDoll = True }
               , showCharSheet = False
               }
@@ -741,24 +741,24 @@ and the elfbot's armour has no effect against your laser.
                                             ( ".", newCounters )
                                 in
                                 ( [ "You zapped the little bastard!", "You wasted it! Good shooting!", "You will need more evidence, so you search GDH7-beta further" ++ lineEnd ]
-                                , more Page22
+                                , next Page22
                                 , healedCounters
                                 )
 
                             Injured newEnemyHitPoints ->
                                 ( [ "You zapped the little bastard!" ]
-                                , more <| Page17Fight (round + 1) newEnemyHitPoints
+                                , next <| Page17Fight (round + 1) newEnemyHitPoints
                                 , newCounters
                                 )
 
                             Missed ->
                                 ( [ "Damn! You missed!" ]
-                                , more <| Page17Fight (round + 1) enemyHitPoints
+                                , next <| Page17Fight (round + 1) enemyHitPoints
                                 , newCounters
                                 )
             in
             ( { description = description1 ++ description2 |> String.join "\n"
-              , choices = [ nextMsg ]
+              , choices = nextMsg
               , counters = newerCounters
               , showCharSheet = False
               }
@@ -777,7 +777,7 @@ this when you wish you'd had some training for this job.  Luckily the
 creature doesn't take notice of you but stands unmoving, as though waiting for
 a summons from its dark lord, the Master Retailer.
 """
-              , choices = [ more <| Page18Balance ]
+              , choices = next Page18Balance
               , counters = counters
               , showCharSheet = False
               }
@@ -794,13 +794,6 @@ a summons from its dark lord, the Master Retailer.
                 success =
                     List.sum diceResult < counters.agility
 
-                successText =
-                    if success then
-                        "YES - you did it!"
-
-                    else
-                        "Uh oh!"
-
                 descriptionTemplate =
                     """
 WHAM, suddenly you are struck from behind.
@@ -813,16 +806,16 @@ Let's see if you can roll under your agility ({0}). You roll two d10 - a {1}. {2
                         descriptionTemplate
                         [ String.fromInt counters.agility
                         , String.join " and a " <| List.map String.fromInt diceResult
-                        , successText
+                        , successText success
                         ]
             in
             ( { description = description
               , choices =
                     if success then
-                        [ more Page19 ]
+                        next Page19
 
                     else
-                        [ more Page20 ]
+                        next Page20
               , counters = counters
               , showCharSheet = False
               }
@@ -834,12 +827,12 @@ Let's see if you can roll under your agility ({0}). You roll two d10 - a {1}. {2
                 newCounters =
                     { counters | killerCount = counters.killerCount + 1 }
 
-                next =
+                choices =
                     if newCounters.killerCount > counters.maxKill - counters.clone then
-                        [ more <| Page19KilledTooMany ]
+                        next Page19KilledTooMany
 
                     else if counters.readLetter then
-                        [ more <| Page22 ]
+                        next Page22
 
                     else
                         [ ( "You search the body, keeping an eye open for Internal Security", Page34 )
@@ -855,7 +848,7 @@ shopping, as is evident from the rain of shoddy toys falling all around you.
 
 Another valorous deed done in the service of The Computer!
 """
-              , choices = next
+              , choices = choices
               , showCharSheet = False
               , counters = newCounters
               }
@@ -878,7 +871,7 @@ rate.  This has not gone unnoticed by the Internal Security squad at GDH7-beta.
 Suddenly, a net of laser beams spear out of the gloomy corners of the hall,
 chopping you into teeny, weeny bite size pieces.
 """
-              , choices = [ cloneDies counters nextMsg ]
+              , choices = cloneDies counters nextMsg
               , counters = newCounters
               , showCharSheet = False
               }
@@ -895,7 +888,7 @@ spine.  The Christmas beast topples to the ground and begins to burn, filling
 the area with a thick acrid smoke.  It takes only a moment to compose yourself,
 and then you are ready to continue your search for the Master Retailer.
 """
-              , choices = [ more Page22 ]
+              , choices = next Page22
               , counters = counters
               , showCharSheet = False
               }
@@ -924,7 +917,7 @@ THIS WAY" and points off between two rows of caroling elfbots.
 
         Page22RandomEncounterResult diceResult ->
             let
-                next =
+                nextChoice =
                     case diceResult of
                         1 ->
                             Page18
@@ -941,7 +934,7 @@ THIS WAY" and points off between two rows of caroling elfbots.
             ( { description = """
 You are searching Goods Distribution Hall 7-beta.
 """
-              , choices = [ more next ]
+              , choices = next nextChoice
               , counters = counters
               , showCharSheet = False
               }
@@ -1014,7 +1007,7 @@ blaster up your nose, but that doesn't hurt as much as the multi-gigawatt
 carbonium tipped food drill in the small of your back.
 You spend the remaining micro-seconds of your life wondering what you did wrong
 """
-              , choices = [ cloneDies counters nextMsg ]
+              , choices = cloneDies counters nextMsg
               , counters = newCounters
               , showCharSheet = False
               }
@@ -1025,7 +1018,7 @@ You spend the remaining micro-seconds of your life wondering what you did wrong
             ( { description = """
 They don't think it's funny.
 """
-              , choices = [ more Page26 ]
+              , choices = next Page26
               , counters = counters
               , showCharSheet = False
               }
@@ -1104,7 +1097,7 @@ previous clone's personal effects and notepad.  After reviewing the notes you
 know what has to be done.  You catch the purple line to Goods Distribution Hall
 7-beta and begin to search for the blast door.
 """
-              , choices = [ more Page22 ]
+              , choices = next Page22
               , counters = counters
               , showCharSheet = False
               }
@@ -1122,10 +1115,10 @@ into the room.
 """
               , choices =
                     if counters.ultraViolet then
-                        [ more Page35 ]
+                        next Page35
 
                     else
-                        [ more Page36 ]
+                        next Page36
               , counters = { counters | blastDoor = True }
               , showCharSheet = False
               }
@@ -1154,7 +1147,7 @@ never serve the interests of the proletariat above their own bourgeois desires.
 P.S. I'm doing some Christmas shopping later today.  Would you like me to pick
 you up something?"
 """
-              , choices = [ more Page34More ]
+              , choices = more Page34More
               , counters = counters
               , showCharSheet = False
               }
@@ -1163,7 +1156,7 @@ you up something?"
 
         Page34More ->
             ( { description = """
-When you put down the memo you are overcome by that strange deja'vu again.
+When you put down the memo you are overcome by that strange deja vu again.
 You see yourself talking privately with The Computer.  You are telling it all
 about the communists' plan, and then the scene shifts and you see yourself
 showered with awards for foiling the insidious communist plot to take over the
@@ -1207,7 +1200,7 @@ here, the Master Retailer himself with his head caught in his own cannon.  His
 death will serve as a symbol of freedom for all Alpha Complex.
 Fire the cannon."
 """
-              , choices = [ cloneDies counters nextMsg ]
+              , choices = cloneDies counters nextMsg
               , counters = newCounters
               , showCharSheet = False
               }
@@ -1249,7 +1242,7 @@ There is only one other student here, a Troubleshooter near the front row
 playing with his Action Troubleshooter(tm) figure.  "Find a seat and I will
 begin," says the instructor.
 """
-              , choices = [ more Page38 ]
+              , choices = next Page38
               , counters = counters
               , showCharSheet = False
               }
@@ -1309,7 +1302,7 @@ tomorrow's mutant dissection class."
 """
             in
             ( { description = interpolate description [ String.fromInt counters.platoClone ]
-              , choices = [ more Page41 ]
+              , choices = next Page41
               , counters = counters
               , showCharSheet = False
               }
@@ -1355,16 +1348,16 @@ purple nimbus surrounds your body.  "Ha Ha, got one," says the instructor.
             let
                 ( description, nextMsg ) =
                     if playerHitRoll <= 30 then
-                        ( "His shot hits you.  You feel numb all over.", more Page49 )
+                        ( "His shot hits you.  You feel numb all over.", next Page49 )
 
                     else if enemyHitRoll <= 40 then
-                        ( "His shot just missed.\n\nYou just blew his head off.  His lifeless hand drops the mutant detector ray.", more Page50 )
+                        ( "His shot just missed.\n\nYou just blew his head off.  His lifeless hand drops the mutant detector ray.", next Page50 )
 
                     else
-                        ( "His shot just missed.\n\nYou burnt a hole in the podium.  He sights the mutant detector ray on you.", more Page40Fight )
+                        ( "His shot just missed.\n\nYou burnt a hole in the podium.  He sights the mutant detector ray on you.", next Page40Fight )
             in
             ( { description = description
-              , choices = [ nextMsg ]
+              , choices = nextMsg
               , counters = counters
               , showCharSheet = False
               }
@@ -1470,7 +1463,7 @@ remaining possessions and notebook.  You puzzle through your predecessor's
 cryptic notes, managing to decipher enough to lead you to the tube station and
 the tube car to GDH7-beta.
 """
-              , choices = [ more Page10 ]
+              , choices = next Page10
               , counters = counters
               , showCharSheet = False
               }
@@ -1506,7 +1499,7 @@ Don't look to me for sympathy.
 
 \t\t\tTHE END
 """
-              , choices = [ restart ]
+              , choices = restart
               , counters = counters
               , showCharSheet = False
               }
@@ -1530,7 +1523,7 @@ disposal car shoot straight up out of Alpha Complex.  One of the last things
 you see is a small blue sphere slowly dwindling behind you.  After you fail to
 report in, you will be assumed dead.
 """
-              , choices = [ cloneDies counters nextMsg ]
+              , choices = cloneDies counters nextMsg
               , counters = newCounters
               , showCharSheet = False
               }
@@ -1551,7 +1544,7 @@ report in, you will be assumed dead.
 The instructor drags your inert body into a specimen detainment cage.
 "He'll make a good subject for tomorrow's mutant dissection class," you hear.
 """
-              , choices = [ cloneDies counters nextMsg ]
+              , choices = cloneDies counters nextMsg
               , counters = newCounters
               , showCharSheet = False
               }
@@ -1564,7 +1557,7 @@ You put down the other Troubleshooter, and then wisely decide to drill a few
 holes in the instructor as well the only good witness is a dead witness.
 You continue with the training course.
 """
-              , choices = [ more <| Page41 ]
+              , choices = next Page41
               , counters = { counters | platoClone = counters.platoClone + 1 }
               , showCharSheet = False
               }
@@ -1585,7 +1578,7 @@ You continue with the training course.
 You run for it, but you don't run far.  Three hundred strange and exotic
 weapons turn you into a freeze dried cloud of soot.
 """
-              , choices = [ cloneDies counters nextMsg ]
+              , choices = cloneDies counters nextMsg
               , counters = newCounters
               , showCharSheet = False
               }
@@ -1597,7 +1590,7 @@ weapons turn you into a freeze dried cloud of soot.
 You wisely wait until the instructor returns with a Blue Internal Security
 guard.  The guard leads you to an Internal Security self incrimination station.
 """
-              , choices = [ more <| Page2 counters ]
+              , choices = next <| Page2 counters
               , counters = counters
               , showCharSheet = False
               }
@@ -1643,7 +1636,7 @@ the speaker above your head rapidly repeats "Traitor, Traitor, Traitor."
 It doesn't take long for a few guards to notice your predicament and come to
 finish you off.
 """
-              , choices = [ cloneDies counters nextMsg ]
+              , choices = cloneDies counters nextMsg
               , counters = newCounters
               , showCharSheet = False
               }
@@ -1667,7 +1660,7 @@ persevered and graduated.  Good luck and die trying."  Then the instructor
 begins reading the names of the students who one by one walk to the front of
 the auditorium and receive their diplomas.
 """
-              , choices = [ more Page55More ]
+              , choices = more Page55More
               , counters = counters
               , showCharSheet = False
               }
@@ -1692,7 +1685,7 @@ society.  In a week you receive a detailed Training Course bill totalling
 """
             in
             ( { description = interpolate description [ String.fromInt counters.platoClone ]
-              , choices = [ restart ]
+              , choices = restart
               , counters = counters
               , showCharSheet = False
               }
@@ -1738,7 +1731,7 @@ All your clones are dead.  Your name has been stricken from the records.
 
 THE END
 """
-              , choices = [ restart ]
+              , choices = restart
               , counters = initCounters
               , showCharSheet = False
               }
