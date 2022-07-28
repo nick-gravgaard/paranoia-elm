@@ -86,6 +86,7 @@ type Msg
     | YouLose
     | ToggleCharSheet
 
+
 type alias Counters =
     { moxie : Int
     , agility : Int
@@ -171,7 +172,7 @@ maybeNewClone counters =
 
 cloneDies : Counters -> Msg -> List ( String, Msg )
 cloneDies counters msg =
-    [ ( interpolate "🪦 Clone {0} just died." [ String.fromInt counters.clone ], msg ) ]
+    [ ( interpolate "\u{1FAA6} Clone {0} just died." [ String.fromInt counters.clone ], msg ) ]
 
 
 next : Msg -> List ( String, Msg )
@@ -237,7 +238,8 @@ HOW TO WIN:
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
-        counters = model.counters
+        counters =
+            model.counters
     in
     case msg of
         Instructions ->
@@ -259,16 +261,16 @@ in a large mission briefing room.
 
         Page2 c ->
             let
-                (nextMsg, newCounters) =
+                ( nextMsg, newCounters ) =
                     case ( maybeNewClone c, c.computerRequest ) of
                         ( Nothing, _ ) ->
-                            (YouLose, initCounters)
+                            ( YouLose, initCounters )
 
                         ( Just newCloneCounters, True ) ->
-                            (Page45, newCloneCounters)
+                            ( Page45, newCloneCounters )
 
                         ( Just newCloneCounters, False ) ->
-                            (Page32, newCloneCounters)
+                            ( Page32, newCloneCounters )
             in
             ( { description = """
 "Greetings," says the kindly Internal Security self incrimination expert who
@@ -422,12 +424,8 @@ Inside, you can see an IS agent cheerfully greet an infrared citizen and then
 lead him at gunpoint into one of the rubber lined discussion rooms.
 """
               , choices =
-                    [ ( "➡️ You decide to stop here and chat, as ordered by The Computer"
-                      , Page2 { counters | computerRequest = True }
-                      )
-                    , ( "➡️ You just continue blithely on past"
-                      , Page10
-                      )
+                    [ ( "➡️ You decide to stop here and chat, as ordered by The Computer", Page2 { counters | computerRequest = True } )
+                    , ( "➡️ You just continue blithely on past", Page10 )
                     ]
               , counters = counters
               , showCharSheet = False
@@ -449,19 +447,13 @@ to nowhere.
                     let
                         conditionalChoices =
                             if counters.ultraViolet then
-                                [ ( "➡️ You decide to ask The Computer about Christmas using a nearby terminal"
-                                  , Page3
-                                  )
-                                ]
+                                [ ( "➡️ You decide to ask The Computer about Christmas using a nearby terminal", Page3 ) ]
 
                             else
                                 []
                     in
                     conditionalChoices
-                        ++ [ ( "➡️ You think you have the route worked out, so you'll board a tube train"
-                             , Page10Tubecar
-                             )
-                           ]
+                        ++ [ ( "➡️ You think you have the route worked out, so you'll board a tube train", Page10Tubecar ) ]
               , showCharSheet = False
               , counters = counters
               }
@@ -484,28 +476,20 @@ You nervously select a tubecar and step aboard.
 
 Let's see if you can roll under your moxie ({0}). You roll two d10 - a {1}. {2}
 """
-
-                description =
+            in
+            ( { description =
                     interpolate
                         descriptionTemplate
                         [ String.fromInt counters.moxie
                         , String.join " and a " <| List.map String.fromInt diceResult
                         , successText success
                         ]
-            in
-            ( { description = description
               , choices =
                     if success then
-                        [ ( "➡️ You just caught a purple line tubecar."
-                          , Page13
-                          )
-                        ]
+                        [ ( "➡️ You just caught a purple line tubecar.", Page13 ) ]
 
                     else
-                        [ ( "➡️ You just caught a brown line tubecar."
-                          , Page48
-                          )
-                        ]
+                        [ ( "➡️ You just caught a brown line tubecar.", Page48 ) ]
               , counters = counters
               , showCharSheet = False
               }
@@ -556,12 +540,8 @@ the megabolts holding the door shut.  You are now free to continue the
 mission.
 """
               , choices =
-                    [ ( "➡️ You wish to ask The Computer for more information about Christmas"
-                      , Page3
-                      )
-                    , ( "➡️ You have decided to go directly to Goods Distribution Hall 7-beta"
-                      , Page10
-                      )
+                    [ ( "➡️ You wish to ask The Computer for more information about Christmas", Page3 )
+                    , ( "➡️ You have decided to go directly to Goods Distribution Hall 7-beta", Page10 )
                     ]
               , counters = counters
               , showCharSheet = False
@@ -580,12 +560,8 @@ hear him say, "Let's see your briefing release form, bud.  You aren't
 getting out of here without it."
 """
               , choices =
-                    [ ( "➡️ You sit down at the table and read the Orange packet"
-                      , Page11
-                      )
-                    , ( "➡️ You stare around the room some more"
-                      , Page57
-                      )
+                    [ ( "➡️ You sit down at the table and read the Orange packet", Page11)
+                    , ( "➡️ You stare around the room some more", Page57)
                     ]
               , counters = counters
               , showCharSheet = False
@@ -675,7 +651,7 @@ You whip out your laser and shoot the robot, but not before it squeezes the
 toy at you.  The squeeze toy has the same effect as a cone rifle firing napalm,
 and the elfbot's armour has no effect against your laser.
 """
-              , choices = [ ( "⚔️ Fight!", Page17Fight 1 15 ) ]
+              , choices = [ ( "🔫 Fight!", Page17Fight 1 15 ) ]
               , counters = counters
               , showCharSheet = False
               }
@@ -698,7 +674,7 @@ and the elfbot's armour has no effect against your laser.
 
         Page17FightResult round enemyHitPoints playerHitRoll playerDamageRoll enemyHitRoll enemyDamageRolls ->
             let
-                heal : Counters -> (String, Counters)
+                heal : Counters -> ( String, Counters )
                 heal c =
                     if c.hitPoints < 10 then
                         ( " after the GDH medbot has patched you up.", { c | hitPoints = 10 } )
@@ -708,79 +684,64 @@ and the elfbot's armour has no effect against your laser.
             in
             if round <= 2 then
                 let
-                    checkHit : Int -> Int -> Int -> Int -> AttackResult
-                    checkHit skill hitPoints hitRoll damageRoll =
-                        if hitRoll <= skill then
-                            let
-                                newHitPoints =
-                                    hitPoints - damageRoll
-                            in
-                            if newHitPoints <= 0 then
-                                Dead
-
-                            else
-                                Injured newHitPoints
+                    ( description1, newCounters ) =
+                        if playerHitRoll <= 25 then
+                            ( [ "You have been hit!" ], { counters | hitPoints = counters.hitPoints - playerDamageRoll } )
 
                         else
-                            Missed
-
-                    ( description1, newCounters ) =
-                        case checkHit 25 counters.hitPoints playerHitRoll playerDamageRoll of
-                            Dead ->
-                                ( [ "You have been hit!" ], { counters | hitPoints = 0 } )
-
-                            Injured newPlayerHitPoints ->
-                                ( [ "You have been hit!" ], { counters | hitPoints = newPlayerHitPoints } )
-
-                            Missed ->
-                                ( [ "It missed you, but not by much!" ], counters )
+                            ( [ "It missed you, but not by much!" ], counters )
 
                     ( description2, nextMsg, newerCounters ) =
-                        if newCounters.hitPoints == 0 then
-                            ( [], cloneDies counters <| Page45, newCounters)
+                        if newCounters.hitPoints <= 0 then
+                            ( [], cloneDies counters <| Page45, newCounters )
+
+                        else if enemyHitRoll <= 40 then
+                            let
+                                newEnemyHitPoints =
+                                    enemyHitPoints - List.sum enemyDamageRolls
+                            in
+                            if newEnemyHitPoints <= 0 then
+                                let
+                                    ( lineEnd, healedCounters ) =
+                                        heal newCounters
+                                in
+                                ( [ "You zapped the little bastard!", "You wasted it! Good shooting!", "You will need more evidence, so you search GDH7-beta further" ++ lineEnd ]
+                                , next Page22
+                                , healedCounters
+                                )
+
+                            else
+                                ( [ "You zapped the little bastard!" ]
+                                , next <| Page17Fight (round + 1) newEnemyHitPoints
+                                , newCounters
+                                )
 
                         else
-                            case checkHit 40 enemyHitPoints enemyHitRoll (List.sum enemyDamageRolls) of
-                                Dead ->
-                                    let
-                                        ( lineEnd, healedCounters ) = heal newCounters
-                                    in
-                                    ( [ "You zapped the little bastard!", "You wasted it! Good shooting!", "You will need more evidence, so you search GDH7-beta further" ++ lineEnd ]
-                                    , next Page22
-                                    , healedCounters
-                                    )
-
-                                Injured newEnemyHitPoints ->
-                                    ( [ "You zapped the little bastard!" ]
-                                    , next <| Page17Fight (round + 1) newEnemyHitPoints
-                                    , newCounters
-                                    )
-
-                                Missed ->
-                                    ( [ "Damn! You missed!" ]
-                                    , next <| Page17Fight (round + 1) enemyHitPoints
-                                    , newCounters
-                                    )
+                            ( [ "Damn! You missed!" ]
+                            , next <| Page17Fight (round + 1) enemyHitPoints
+                            , newCounters
+                            )
                 in
                 ( { description = description1 ++ description2 |> String.join "\n"
-                , choices = nextMsg
-                , counters = newerCounters
-                , showCharSheet = False
-                }
-                , Cmd.none
-                )
-            else
-                let
-                    ( lineEnd, healedCounters ) = heal counters
-                in
-                ( { description = [ "It tried to fire again, but the toy exploded and demolished it.", "You will need more evidence, so you search GDH7-beta further" ++ lineEnd ] |> String.join "\n"
-                , choices = next Page22
-                , counters = healedCounters
-                , showCharSheet = False
-                }
+                  , choices = nextMsg
+                  , counters = newerCounters
+                  , showCharSheet = False
+                  }
                 , Cmd.none
                 )
 
+            else
+                let
+                    ( lineEnd, healedCounters ) =
+                        heal counters
+                in
+                ( { description = [ "It tried to fire again, but the toy exploded and demolished it.", "You will need more evidence, so you search GDH7-beta further" ++ lineEnd ] |> String.join "\n"
+                  , choices = next Page22
+                  , counters = healedCounters
+                  , showCharSheet = False
+                  }
+                , Cmd.none
+                )
 
         Page18 ->
             ( { description = """
@@ -817,16 +778,14 @@ WHAM, suddenly you are struck from behind.
 
 Let's see if you can roll under your agility ({0}). You roll two d10 - a {1}. {2}
 """
-
-                description =
+            in
+            ( { description =
                     interpolate
                         descriptionTemplate
                         [ String.fromInt counters.agility
                         , String.join " and a " <| List.map String.fromInt diceResult
                         , successText success
                         ]
-            in
-            ( { description = description
               , choices =
                     if success then
                         next Page19
@@ -874,13 +833,13 @@ Another valorous deed done in the service of The Computer!
 
         Page19KilledTooMany ->
             let
-                (nextMsg, newCounters) =
+                ( nextMsg, newCounters ) =
                     case maybeNewClone counters of
                         Nothing ->
-                            (YouLose, initCounters)
+                            ( YouLose, initCounters )
 
                         Just newCloneCounters ->
-                            (Page45, newCloneCounters)
+                            ( Page45, newCloneCounters )
             in
             ( { description = """
 You have been wasting the leading citizens of Alpha Complex at a prodigious
@@ -1009,13 +968,13 @@ shoot.  This is your last chance.
 
         Page26 ->
             let
-                (nextMsg, newCounters) =
+                ( nextMsg, newCounters ) =
                     case maybeNewClone counters of
                         Nothing ->
-                            (YouLose, initCounters)
+                            ( YouLose, initCounters )
 
                         Just newCloneCounters ->
-                            (Page32, newCloneCounters)
+                            ( Page32, newCloneCounters )
             in
             ( { description = """
 You can read the cold, sober hatred in their eyes (They really didn't think
@@ -1191,13 +1150,13 @@ complex.
 
         Page35 ->
             let
-                (nextMsg, newCounters) =
+                ( nextMsg, newCounters ) =
                     case maybeNewClone counters of
                         Nothing ->
-                            (YouLose, initCounters)
+                            ( YouLose, initCounters )
 
                         Just newCloneCounters ->
-                            (Page32, newCloneCounters)
+                            ( Page32, newCloneCounters )
             in
             ( { description = """
 "Oh master," you hear through the gun barrel, "where have you been? It is
@@ -1344,7 +1303,7 @@ purple nimbus surrounds your body.  "Ha Ha, got one," says the instructor.
 """
             in
             ( { description = interpolate description [ String.fromInt counters.platoClone ]
-              , choices = [ ( "⚔️ Fight!", Page40Fight ) ]
+              , choices = [ ( "🔫 Fight!", Page40Fight ) ]
               , counters = counters
               , showCharSheet = False
               }
@@ -1525,13 +1484,13 @@ Don't look to me for sympathy.
 
         Page48 ->
             let
-                (nextMsg, newCounters) =
+                ( nextMsg, newCounters ) =
                     case maybeNewClone counters of
                         Nothing ->
-                            (YouLose, initCounters)
+                            ( YouLose, initCounters )
 
                         Just newCloneCounters ->
-                            (Page45, newCloneCounters)
+                            ( Page45, newCloneCounters )
             in
             ( { description = """
 The tubecar shoots forward as you enter, slamming you back into a pile of
@@ -1549,13 +1508,13 @@ report in, you will be assumed dead.
 
         Page49 ->
             let
-                (nextMsg, newCounters) =
+                ( nextMsg, newCounters ) =
                     case maybeNewClone counters of
                         Nothing ->
-                            (YouLose, initCounters)
+                            ( YouLose, initCounters )
 
                         Just newCloneCounters ->
-                            (Page32, newCloneCounters)
+                            ( Page32, newCloneCounters )
             in
             ( { description = """
 The instructor drags your inert body into a specimen detainment cage.
@@ -1583,13 +1542,13 @@ You continue with the training course.
 
         Page51 ->
             let
-                (nextMsg, newCounters) =
+                ( nextMsg, newCounters ) =
                     case maybeNewClone counters of
                         Nothing ->
-                            (YouLose, initCounters)
+                            ( YouLose, initCounters )
 
                         Just newCloneCounters ->
-                            (Page32, newCloneCounters)
+                            ( Page32, newCloneCounters )
             in
             ( { description = """
 You run for it, but you don't run far.  Three hundred strange and exotic
@@ -1630,17 +1589,17 @@ You tell The Computer about:
 
         Page54 ->
             let
-                (nextMsg, newCounters) =
+                ( nextMsg, newCounters ) =
                     case maybeNewClone counters of
                         Nothing ->
-                            (YouLose, initCounters)
+                            ( YouLose, initCounters )
 
                         Just newCloneCounters ->
                             if counters.blastDoor then
-                                (Page32, newCloneCounters)
+                                ( Page32, newCloneCounters )
 
                             else
-                                (Page45, newCloneCounters)
+                                ( Page45, newCloneCounters )
             in
             ( { description = """
 "Do not try to change the subject, Troubleshooter," says The Computer.
@@ -1756,7 +1715,7 @@ THE END
             )
 
         ToggleCharSheet ->
-            ( {model | showCharSheet = not model.showCharSheet}, Cmd.none)
+            ( { model | showCharSheet = not model.showCharSheet }, Cmd.none )
 
 
 initCounters =
@@ -1810,25 +1769,27 @@ view model =
     Element.layout [] <|
         Element.textColumn [ spacingXY 10 30, padding 10 ] <|
             let
-                (mainText, choices) =
+                ( mainText, choices ) =
                     if model.showCharSheet then
-                        (charSheet model.counters, [ ("⬅️ Back to game", ToggleCharSheet) ])
+                        ( charSheet model.counters, [ ( "⬅️ Back to game", ToggleCharSheet ) ] )
+
                     else
-                        (model.description, model.choices ++ [ ("📊 Show character sheet", ToggleCharSheet) ])
+                        ( model.description, model.choices ++ [ ( "📊 Show character sheet", ToggleCharSheet ) ] )
             in
-                let
-                    otherParas =
-                        List.map
-                            (\( linkText, msg ) ->
-                                paragraph []
-                                    [ button []
-                                        { onPress = Just <| msg
-                                        , label = Element.text linkText
-                                        }
-                                    ]
-                            )
-                        <|
-                            choices
-                in
-                    paragraph []
-                        [ preFormattedElement <| mainText ] :: otherParas
+            let
+                otherParas =
+                    List.map
+                        (\( linkText, msg ) ->
+                            paragraph []
+                                [ button []
+                                    { onPress = Just <| msg
+                                    , label = Element.text linkText
+                                    }
+                                ]
+                        )
+                    <|
+                        choices
+            in
+            paragraph []
+                [ preFormattedElement <| mainText ]
+                :: otherParas
