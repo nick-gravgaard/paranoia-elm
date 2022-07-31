@@ -227,13 +227,13 @@ update msg model =
         counters =
             model.counters
 
-        changeTextChoices : String -> List ( String, Msg ) -> ( Model, Cmd Msg )
-        changeTextChoices text choices =
-            changeTextChoicesCounters text choices model.counters
+        textAndChoices : String -> List ( String, Msg ) -> ( Model, Cmd Msg )
+        textAndChoices text choices =
+            textAndChoicesAndCounters text choices model.counters
 
         -- ( { text = text, choices = choices, counters = counters, showCharSheet = False }, Cmd.none )
-        changeTextChoicesCounters : String -> List ( String, Msg ) -> Counters -> ( Model, Cmd Msg )
-        changeTextChoicesCounters text choices c =
+        textAndChoicesAndCounters : String -> List ( String, Msg ) -> Counters -> ( Model, Cmd Msg )
+        textAndChoicesAndCounters text choices c =
             ( { text = text, choices = choices, counters = c, showCharSheet = False }, Cmd.none )
     in
     case msg of
@@ -241,7 +241,7 @@ update msg model =
             ( instructionsModel, Cmd.none )
 
         Page1 ->
-            changeTextChoices
+            textAndChoices
                 """
 You wake up face down on the red and pink checked E-Z-Kleen linoleum floor.
 You recognise the pattern, it's the type preferred in the internal security
@@ -263,7 +263,7 @@ in a large mission briefing room.
                         ( Just newCloneCounters, False ) ->
                             ( Page32, newCloneCounters )
             in
-            changeTextChoicesCounters
+            textAndChoicesAndCounters
                 """
 "Greetings," says the kindly Internal Security self incrimination expert who
 meets you at the door, "How are we doing today?"  He offers you a doughnut
@@ -283,7 +283,7 @@ Services.
                 newCounters
 
         Page3 ->
-            changeTextChoices
+            textAndChoices
                 """
 You walk to the nearest Computer terminal and request more information about
 Christmas.  The Computer says, "That is an A-1 ULTRAVIOLET ONLY IMMEDIATE
@@ -294,7 +294,7 @@ TERMINATION classified topic.  What is your clearance please, Troubleshooter?"
                 ]
 
         Page4 ->
-            changeTextChoices
+            textAndChoices
                 """
 "That is classified information, Troubleshooter, thank you for your inquiry.
 Please report to an Internal Security self incrimination station as soon as
@@ -303,7 +303,7 @@ possible."
                 (next Page9)
 
         Page5 ->
-            changeTextChoices
+            textAndChoices
                 """
 The computer says, "Troubleshooter, you are not wearing the correct colour
 uniform.  You must put on an Ultraviolet uniform immediately.  I have seen to
@@ -317,7 +317,7 @@ you and stands back, well outside of a fragmentation grenade's blast radius.
                 ]
 
         Page6 ->
-            changeTextChoicesCounters
+            textAndChoicesAndCounters
                 """
 The uniform definitely makes you look snappy and pert.  It really looks
 impressive, and even has the new lopsided lapel fashion that you admire so
@@ -331,7 +331,7 @@ The beeping computer terminal interrupts your musings.
                 { counters | ultraViolet = True }
 
         Page7 ->
-            changeTextChoicesCounters
+            textAndChoicesAndCounters
                 """
 The corridor lights dim and are replaced by red battle lamps as the Security
 Breach alarms howl all around you.  You run headlong down the corridor and
@@ -362,7 +362,7 @@ Suddenly, a computer terminal comes to life beside you.
                 { counters | ultraViolet = True }
 
         Page8 ->
-            changeTextChoices
+            textAndChoices
                 """
 "Now, about your question, citizen.  Christmas was an old world marketing ploy
 to induce lower clearance citizens to purchase vast quantities of goods, thus
@@ -381,7 +381,7 @@ You continue on your way to GDH7-beta.
                 (next Page10)
 
         Page9 ->
-            changeTextChoices
+            textAndChoices
                 """
 As you walk toward the tubecar that will take you to GDH7-beta, you pass one
 of the bright blue and orange Internal Security self incrimination stations.
@@ -393,7 +393,7 @@ lead him at gunpoint into one of the rubber lined discussion rooms.
                 ]
 
         Page10 ->
-            changeTextChoices
+            textAndChoices
                 """
 You stroll briskly down the corridor, up a ladder, across an unrailed catwalk,
 under a perilously swinging blast door in urgent need of repair, and into
@@ -429,7 +429,7 @@ You nervously select a tubecar and step aboard.
 Let's see if you can roll under your moxie ({0}). You roll two d10 - a {1}. {2}
 """
             in
-            changeTextChoices
+            textAndChoices
                 (interpolate
                     description
                     [ String.fromInt counters.moxie
@@ -445,7 +445,7 @@ Let's see if you can roll under your moxie ({0}). You roll two d10 - a {1}. {2}
                 )
 
         Page11 ->
-            changeTextChoices
+            textAndChoices
                 """
 The printing on the folder says "Experimental Self Briefing."
 You open it and begin to read the following:
@@ -477,7 +477,7 @@ Step 5: Terminate the briefing
                 (more Page11More)
 
         Page11More ->
-            changeTextChoices
+            textAndChoices
                 """
 You walk to the door and hold your signed briefing release form up to the
 plexiglass window.  A guard scrutinises it for a moment and then slides back
@@ -489,7 +489,7 @@ mission.
                 ]
 
         Page12 ->
-            changeTextChoices
+            textAndChoices
                 """
 You walk up to the door and push the button labelled "push to exit."
 Within seconds a surly looking guard shoves his face into the small plexiglass
@@ -504,7 +504,7 @@ getting out of here without it."
                 ]
 
         Page13 ->
-            changeTextChoices
+            textAndChoices
                 """
 You step into the shiny plasteel tubecar, wondering why the shape has always
 reminded you of bullets.  The car shoots forward the instant your feet touch
@@ -519,7 +519,7 @@ to the door and pull open the latch.
                 (next Page14)
 
         Page14 ->
-            changeTextChoices
+            textAndChoices
                 """
 You manage to pull yourself out of the tubecar and look around.  Before you is
 one of the most confusing things you have ever seen, a hallway that is
@@ -534,7 +534,7 @@ wearing a huge red synthetic flower.
                 (next Page22)
 
         Page15 ->
-            changeTextChoices
+            textAndChoices
                 """
 You are set upon by a runty robot with a queer looking face and two pointy
 rubber ears poking from beneath a tattered cap.  "Hey mister," it says,
@@ -552,7 +552,7 @@ squeeze him, his little rifle squirts realistic looking napalm.  It's only
                 ]
 
         Page16 ->
-            changeTextChoicesCounters
+            textAndChoicesAndCounters
                 """
 The doll is a good buy for fifty credits it will make a fine Christmas present
 for one of your friends.  After the sale the robot rolls away.  You can use
@@ -564,7 +564,7 @@ But don't let that stop you.
                 { counters | actionDoll = True }
 
         Page17 ->
-            changeTextChoices
+            textAndChoices
                 """
 You whip out your laser and shoot the robot, but not before it squeezes the
 toy at you.  The squeeze toy has the same effect as a cone rifle firing napalm,
@@ -647,7 +647,7 @@ and the elfbot's armour has no effect against your laser.
                                     , newCounters
                                     )
                 in
-                changeTextChoicesCounters
+                textAndChoicesAndCounters
                     ("" :: description1 ++ description2 |> String.join "\n")
                     nextMsg
                     newerCounters
@@ -657,13 +657,13 @@ and the elfbot's armour has no effect against your laser.
                     ( lineEnd, healedCounters ) =
                         heal counters
                 in
-                changeTextChoicesCounters
+                textAndChoicesAndCounters
                     ([ "", "It tried to fire again, but the toy exploded and demolished it.", "You will need more evidence, so you search GDH7-beta further" ++ lineEnd ] |> String.join "\n")
                     (next Page22)
                     healedCounters
 
         Page18 ->
-            changeTextChoices
+            textAndChoices
                 """
 You walk to the centre of the hall, ogling like an infrared fresh from the
 clone vats.  Towering before you is the most unearthly thing you have ever
@@ -694,7 +694,7 @@ WHAM, suddenly you are struck from behind.
 Let's see if you can roll under your agility ({0}). You roll two d10 - a {1}. {2}
 """
             in
-            changeTextChoices
+            textAndChoices
                 (interpolate
                     description
                     [ String.fromInt counters.agility
@@ -726,7 +726,7 @@ Let's see if you can roll under your agility ({0}). You roll two d10 - a {1}. {2
                         , ( "You run away like the cowardly dog you are", Page22 )
                         ]
             in
-            changeTextChoicesCounters
+            textAndChoicesAndCounters
                 """
 Quickly you regain your balance, whirl and fire your laser into the Ultraviolet
 citizen behind you.  For a moment your heart leaps to your throat, then you
@@ -749,7 +749,7 @@ Another valorous deed done in the service of The Computer!
                         Just newCloneCounters ->
                             ( Page45, newCloneCounters )
             in
-            changeTextChoicesCounters
+            textAndChoicesAndCounters
                 """
 You have been wasting the leading citizens of Alpha Complex at a prodigious
 rate.  This has not gone unnoticed by the Internal Security squad at GDH7-beta.
@@ -760,7 +760,7 @@ chopping you into teeny, weeny bite size pieces.
                 newCounters
 
         Page20 ->
-            changeTextChoices
+            textAndChoices
                 """
 Oh no! you can't keep your balance.  You're falling, falling head first into
 the Christmas beast's gaping maw.  It's a valiant struggle you think you are
@@ -773,7 +773,7 @@ and then you are ready to continue your search for the Master Retailer.
                 (next Page22)
 
         Page21 ->
-            changeTextChoices
+            textAndChoices
                 """
 Suddenly a large florescent sign pops up from the ground. It reads "SCENARIO
 THIS WAY" and points off between two rows of caroling elfbots.
@@ -788,14 +788,14 @@ THIS WAY" and points off between two rows of caroling elfbots.
             )
 
         Page22RandomEncounterResult nextChoice ->
-            changeTextChoices
+            textAndChoices
                 """
 You are searching Goods Distribution Hall 7-beta.
 """
                 (next nextChoice)
 
         Page23 ->
-            changeTextChoices
+            textAndChoices
                 """
 You go to the nearest computer terminal and declare yourself a mutant.
 "A mutant, he's a mutant," yells a previously unnoticed infrared who had
@@ -807,7 +807,7 @@ dozen more citizens take notice and aim their weapons at you.
                 ]
 
         Page24 ->
-            changeTextChoices
+            textAndChoices
                 """
 Golly, I never expected someone to pick this.  I haven't even designed
 the 12 citizens who are going to make a sponge out of you.  Tell you what,
@@ -818,7 +818,7 @@ I'll give you a second chance.
                 ]
 
         Page25 ->
-            changeTextChoices
+            textAndChoices
                 """
 Boy, you really can't take a hint!
 They're closing in.  Their trigger fingers are twitching, they're about to
@@ -838,7 +838,7 @@ shoot.  This is your last chance.
                         Just newCloneCounters ->
                             ( Page32, newCloneCounters )
             in
-            changeTextChoicesCounters
+            textAndChoicesAndCounters
                 """
 You can read the cold, sober hatred in their eyes (They really didn't think
 it was funny), as they tighten the circle around you.  One of them shoves a
@@ -850,14 +850,14 @@ You spend the remaining micro-seconds of your life wondering what you did wrong
                 newCounters
 
         Page28 ->
-            changeTextChoices
+            textAndChoices
                 """
 They don't think it's funny.
 """
                 (next Page26)
 
         Page29 ->
-            changeTextChoices
+            textAndChoices
                 """
 "Psst, hey citizen, come here.  Pssfft," you hear.  When you peer around
 you can see someone's dim outline in the shadows.  "I got some information
@@ -869,7 +869,7 @@ on the Master Retailer.  It'll only cost you 30 psst credits."
                 ]
 
         Page30 ->
-            changeTextChoices
+            textAndChoices
                 """
 You step into the shadows and offer the man a thirty credit bill.  "Just drop
 it on the floor," he says.  "So you're looking for the Master Retailer, pssfft?
@@ -890,7 +890,7 @@ is not a joke.
                 ]
 
         Page31 ->
-            changeTextChoices
+            textAndChoices
                 """
 Like any good troubleshooter you make the least expensive decision and threaten
 him for information.  With lightning like reflexes you whip out your laser and
@@ -906,7 +906,7 @@ side of his head.  "Are you going to pay?" says his mouth speaker,
                 ]
 
         Page32 ->
-            changeTextChoices
+            textAndChoices
                 """
 Finally it's your big chance to prove that you're as good a troubleshooter
 as your previous clone.  You walk briskly to mission briefing and pick up your
@@ -917,7 +917,7 @@ know what has to be done.  You catch the purple line to Goods Distribution Hall
                 (next Page22)
 
         Page33 ->
-            changeTextChoicesCounters
+            textAndChoicesAndCounters
                 """
 You release the megabolts on the blast door, then strain against it with your
 awesome strength.  Slowly the door creaks open.  You bravely leap through the
@@ -935,7 +935,7 @@ into the room.
                 { counters | blastDoor = True }
 
         Page34 ->
-            changeTextChoices
+            textAndChoices
                 """
 You have found a sealed envelope on the body.  You open it and read:
 "WARNING: Ultraviolet Clearance ONLY.  DO NOT READ.
@@ -960,7 +960,7 @@ you up something?"
                 (more Page34More)
 
         Page34More ->
-            changeTextChoicesCounters
+            textAndChoicesAndCounters
                 """
 When you put down the memo you are overcome by that strange deja vu again.
 You see yourself talking privately with The Computer.  You are telling it all
@@ -983,7 +983,7 @@ complex.
                         Just newCloneCounters ->
                             ( Page32, newCloneCounters )
             in
-            changeTextChoicesCounters
+            textAndChoicesAndCounters
                 """
 "Oh master," you hear through the gun barrel, "where have you been? It is
 time for the great Christmas gifting ceremony.  You had better hurry and get
@@ -1006,7 +1006,7 @@ Fire the cannon."
                 newCounters
 
         Page36 ->
-            changeTextChoices
+            textAndChoices
                 """
 "Congratulations, troubleshooter, you have successfully found the lair of the
 Master Retailer and completed the Troubleshooter Training Course test mission,"
@@ -1022,7 +1022,7 @@ objections please voice them now."
                 ]
 
         Page37 ->
-            changeTextChoices
+            textAndChoices
                 """
 "Come with me please, Troubleshooter," says the Green clearance technician
 after he has dislodged your head from the cannon.  "You have been participating
@@ -1059,7 +1059,7 @@ they are discovered.  Who would like to volunteer for a test?"
 The Troubleshooter down the front squirms deeper into his chair.
 """
             in
-            changeTextChoices
+            textAndChoices
                 (interpolate description [ String.fromInt counters.platoClone ])
                 [ ( "➡️ You volunteer for the test", Page39 )
                 , ( "➡️ You duck behind a chair and hope the instructor doesn't notice you", Page40 )
@@ -1085,7 +1085,7 @@ infiltration class.  I'll see that the little mutie gets packaged for
 tomorrow's mutant dissection class."
 """
             in
-            changeTextChoices
+            textAndChoices
                 (interpolate description [ String.fromInt counters.platoClone ])
                 (next Page41)
 
@@ -1106,7 +1106,7 @@ purple nimbus surrounds your body.  "Ha Ha, got one," says the instructor.
 "Stun him before he gets away."
 """
             in
-            changeTextChoices
+            textAndChoices
                 (interpolate description [ String.fromInt counters.platoClone ])
                 [ ( "🔫 Fight!", Page40Fight ) ]
 
@@ -1127,10 +1127,10 @@ purple nimbus surrounds your body.  "Ha Ha, got one," says the instructor.
                     else
                         ( "His shot just missed.\n\nYou burnt a hole in the podium.  He sights the mutant detector ray on you.", next Page40Fight )
             in
-            changeTextChoices text choices
+            textAndChoices text choices
 
         Page41 ->
-            changeTextChoices
+            textAndChoices
                 """
 You stumble down the hallway of the Troubleshooter Training Course looking for
 your next class.  Up ahead you see one of the instructors waving to you.  When
@@ -1148,7 +1148,7 @@ your hand with the secret Illuminati handshake.
                 ]
 
         Page42 ->
-            changeTextChoices
+            textAndChoices
                 """
 "Aha, so you are a member of the elitist Illuminati secret society," he says
 loudly, "that is most interesting."  He turns to the large class already
@@ -1161,7 +1161,7 @@ weapons trained on him while I call a guard.
                 ]
 
         Page43 ->
-            changeTextChoices
+            textAndChoices
                 """
 You sit through a long lecture on how to recognise and infiltrate secret
 societies, with an emphasis on mimicking secret handshakes.  The basic theory,
@@ -1180,7 +1180,7 @@ talk to The Computer about, you know, certain topics.
                 ]
 
         Page44 ->
-            changeTextChoices
+            textAndChoices
                 """
 You walk down to a semi-secluded part of the training course complex and
 activate a computer terminal.  "AT YOUR SERVICE" reads the computer screen.
@@ -1198,7 +1198,7 @@ activate a computer terminal.  "AT YOUR SERVICE" reads the computer screen.
                     ]
 
         Page45 ->
-            changeTextChoices
+            textAndChoices
                 """
 "Hrank Hrank," snorts the alarm in your living quarters.  Something is up.
 You look at the monitor above the bathroom mirror and see the message you have
@@ -1213,7 +1213,7 @@ the tube car to GDH7-beta.
                 (next Page10)
 
         Page46 ->
-            changeTextChoices
+            textAndChoices
                 """
 "Why do you ask about the communists, Troubleshooter?  It is not in the
 interest of your continued survival to be asking about such topics," says
@@ -1224,7 +1224,7 @@ The Computer.
                 ]
 
         Page47 ->
-            changeTextChoices
+            textAndChoices
                 """
 The Computer orders the entire Vulture squadron to terminate the Troubleshooter
 Training Course.  Unfortunately you too are terminated for possessing
@@ -1249,7 +1249,7 @@ THE END
                         Just newCloneCounters ->
                             ( Page45, newCloneCounters )
             in
-            changeTextChoicesCounters
+            textAndChoicesAndCounters
                 """
 The tubecar shoots forward as you enter, slamming you back into a pile of
 garbage.  The front end rotates upward and you, the garbage and the garbage
@@ -1270,7 +1270,7 @@ report in, you will be assumed dead.
                         Just newCloneCounters ->
                             ( Page32, newCloneCounters )
             in
-            changeTextChoicesCounters
+            textAndChoicesAndCounters
                 """
 The instructor drags your inert body into a specimen detainment cage.
 "He'll make a good subject for tomorrow's mutant dissection class," you hear.
@@ -1279,7 +1279,7 @@ The instructor drags your inert body into a specimen detainment cage.
                 newCounters
 
         Page50 ->
-            changeTextChoicesCounters
+            textAndChoicesAndCounters
                 """
 You put down the other Troubleshooter, and then wisely decide to drill a few
 holes in the instructor as well the only good witness is a dead witness.
@@ -1298,7 +1298,7 @@ You continue with the training course.
                         Just newCloneCounters ->
                             ( Page32, newCloneCounters )
             in
-            changeTextChoicesCounters
+            textAndChoicesAndCounters
                 """
 You run for it, but you don't run far.  Three hundred strange and exotic
 weapons turn you into a freeze dried cloud of soot.
@@ -1307,7 +1307,7 @@ weapons turn you into a freeze dried cloud of soot.
                 newCounters
 
         Page52 ->
-            changeTextChoices
+            textAndChoices
                 """
 You wisely wait until the instructor returns with a Blue Internal Security
 guard.  The guard leads you to an Internal Security self incrimination station.
@@ -1315,7 +1315,7 @@ guard.  The guard leads you to an Internal Security self incrimination station.
                 (next <| Page2 counters)
 
         Page53 ->
-            changeTextChoices
+            textAndChoices
                 """
 You tell The Computer about:
 """
@@ -1336,7 +1336,7 @@ You tell The Computer about:
                         ( Just newCloneCounters, False ) ->
                             ( Page45, newCloneCounters )
             in
-            changeTextChoicesCounters
+            textAndChoicesAndCounters
                 """
 "Do not try to change the subject, Troubleshooter," says The Computer.
 "It is a serious crime to ask about the communists.  You will be terminated
@@ -1352,7 +1352,7 @@ finish you off.
                 newCounters
 
         Page55 ->
-            changeTextChoices
+            textAndChoices
                 """
 You and 300 other excited graduates are marched from the lecture hall and into
 a large auditorium for the graduation exercise.  The auditorium is
@@ -1388,12 +1388,12 @@ society.  In a week you receive a detailed Training Course bill totalling
 THE END
 """
             in
-            changeTextChoices
+            textAndChoices
                 (interpolate description [ String.fromInt counters.platoClone ])
                 restart
 
         Page56 ->
-            changeTextChoices
+            textAndChoices
                 """
 That familiar strange feeling of deja vu envelops you again.  It is hard to
 say, but whatever is on the other side of the door does not seem to be intended
@@ -1404,7 +1404,7 @@ for you.
                 ]
 
         Page57 ->
-            changeTextChoices
+            textAndChoices
                 """
 In the centre of the room is a table and a single chair.  There is an Orange
 folder on the table top, but you can't make out the lettering on it.
@@ -1414,7 +1414,7 @@ folder on the table top, but you can't make out the lettering on it.
                 ]
 
         YouLose ->
-            changeTextChoicesCounters
+            textAndChoicesAndCounters
                 """
 *** You Lose ***
 
