@@ -35,7 +35,7 @@ type Msg
     | Page16
     | Page17
     | Page17Fight Int Int
-    | Page17FightResult Int Int Int Int Int (List Int)
+    | Page17FightResult Int Int (Maybe Int) (Maybe Int)
     | Page18
     | Page18Balance
     | Page18BalanceResult (List Int)
@@ -109,20 +109,6 @@ type alias Model =
     , counters : Counters
     , showCharSheet : Bool
     }
-
-
-type alias Page17DiceRolls =
-    { r1 : Int
-    , r2 : Int
-    , r3 : Int
-    , r4 : List Int
-    }
-
-
-type AttackResult
-    = Dead
-    | Injured Int
-    | Missed
 
 
 charSheet : Counters -> String
@@ -586,21 +572,29 @@ and the elfbot's armour has no effect against your laser.
 """
                 [ ( "🔫 Fight!", Page17Fight 1 15 ) ]
 
-        Page17Fight round enemyHitPoints ->
+        Page17Fight round enemyHP ->
             let
-                rollsToMsg : Page17DiceRolls -> Msg
-                rollsToMsg dr =
-                    Page17FightResult round enemyHitPoints dr.r1 dr.r2 dr.r3 dr.r4
+                genHit : Int -> Int -> Random.Generator (Maybe Int)
+                genHit skill numOfDamageRolls =
+                    Random.int 1 100
+                        |> Random.andThen
+                            (\hitRoll ->
+                                if hitRoll <= skill then
+                                    rollDice numOfDamageRolls 10 |> Random.andThen (\damageRolls -> List.sum damageRolls |> Just |> Random.constant)
 
-                gen : Random.Generator Page17DiceRolls
-                gen =
-                    Random.map4 Page17DiceRolls (Random.int 1 100) (Random.int 1 10) (Random.int 1 100) (rollDice 2 10)
+                                else
+                                    Nothing |> Random.constant
+                            )
             in
             ( model
-            , Random.generate rollsToMsg gen
+            , Random.generate
+                (\( maybePlayerDamage, maybeEnemyDamage ) ->
+                    Page17FightResult round enemyHP maybePlayerDamage maybeEnemyDamage
+                )
+                (Random.pair (genHit 25 1) (genHit 40 2))
             )
 
-        Page17FightResult round enemyHitPoints playerHitRoll playerDamageRoll enemyHitRoll enemyDamageRolls ->
+        Page17FightResult round enemyHP maybePlayerDamage maybeEnemyDamage ->
             let
                 heal : Counters -> ( String, Counters )
                 heal c =
@@ -613,42 +607,45 @@ and the elfbot's armour has no effect against your laser.
             if round <= 2 then
                 let
                     ( description1, newCounters ) =
-                        if playerHitRoll <= 25 then
-                            ( [ "You have been hit!" ], { counters | hitPoints = counters.hitPoints - playerDamageRoll } )
+                        case maybePlayerDamage of
+                            Just playerDamage ->
+                                ( [ "You have been hit!" ], { counters | hitPoints = counters.hitPoints - playerDamage } )
 
-                        else
-                            ( [ "It missed you, but not by much!" ], counters )
+                            Nothing ->
+                                ( [ "It missed you, but not by much!" ], counters )
 
                     ( description2, nextMsg, newerCounters ) =
                         if newCounters.hitPoints <= 0 then
                             ( [], cloneDies counters.clone <| Page45, newCounters )
 
-                        else if enemyHitRoll <= 40 then
-                            let
-                                newEnemyHitPoints =
-                                    enemyHitPoints - List.sum enemyDamageRolls
-                            in
-                            if newEnemyHitPoints <= 0 then
-                                let
-                                    ( lineEnd, healedCounters ) =
-                                        heal newCounters
-                                in
-                                ( [ "You zapped the little bastard!", "You wasted it! Good shooting!", "You will need more evidence, so you search GDH7-beta further" ++ lineEnd ]
-                                , next Page22
-                                , healedCounters
-                                )
-
-                            else
-                                ( [ "You zapped the little bastard!" ]
-                                , next <| Page17Fight (round + 1) newEnemyHitPoints
-                                , newCounters
-                                )
-
                         else
-                            ( [ "Damn! You missed!" ]
-                            , next <| Page17Fight (round + 1) enemyHitPoints
-                            , newCounters
-                            )
+                            case maybeEnemyDamage of
+                                Just enemyDamage ->
+                                    let
+                                        newEnemyHP =
+                                            enemyHP - enemyDamage
+                                    in
+                                    if newEnemyHP <= 0 then
+                                        let
+                                            ( lineEnd, healedCounters ) =
+                                                heal newCounters
+                                        in
+                                        ( [ "You zapped the little bastard!", "You wasted it! Good shooting!", "You will need more evidence, so you search GDH7-beta further" ++ lineEnd ]
+                                        , next Page22
+                                        , healedCounters
+                                        )
+
+                                    else
+                                        ( [ "You zapped the little bastard!" ]
+                                        , next <| Page17Fight (round + 1) newEnemyHP
+                                        , newCounters
+                                        )
+
+                                Nothing ->
+                                    ( [ "Damn! You missed!" ]
+                                    , next <| Page17Fight (round + 1) enemyHP
+                                    , newCounters
+                                    )
                 in
                 changeTextChoicesCounters
                     ("" :: description1 ++ description2 |> String.join "\n")
