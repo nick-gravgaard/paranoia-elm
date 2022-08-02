@@ -4,11 +4,9 @@ import Browser
 import Element exposing (..)
 import Element.Font as Font
 import Element.Input exposing (..)
-import Element.Region exposing (description)
 import Html exposing (Html)
 import Html.Attributes exposing (style)
 import Random
-import String
 import String.Interpolate exposing (interpolate)
 
 
@@ -25,7 +23,7 @@ type Msg
     | Page9
     | Page10
     | Page10Tubecar
-    | Page10TubecarResult (List Int)
+    | Page10TubecarResult Bool
     | Page11
     | Page11More
     | Page12
@@ -38,7 +36,7 @@ type Msg
     | Page17FightResult Int Int (Maybe Int) (Maybe Int)
     | Page18
     | Page18Balance
-    | Page18BalanceResult (List Int)
+    | Page18BalanceResult Bool
     | Page19
     | Page19KilledTooMany
     | Page20
@@ -64,7 +62,7 @@ type Msg
     | Page39
     | Page40
     | Page40Fight
-    | Page40FightResult Int Int
+    | Page40FightResult Bool Bool
     | Page41
     | Page42
     | Page43
@@ -140,25 +138,28 @@ Equipment: Red Reflec Armour, Laser Pistol, Laser Barrel (red),
 """ [ String.fromInt counters.clone ]
 
 
-maybeNewClone : Counters -> Maybe Counters
-maybeNewClone counters =
-    if counters.clone > 6 then
-        Nothing
+deadCloneChoicesAndCounters : Counters -> (Counters -> Msg) -> ( List ( String, Msg ), Counters )
+deadCloneChoicesAndCounters counters countersToMsg =
+    let
+        newCloneMsg =
+            countersToMsg counters
+
+        text =
+            interpolate "\u{1FAA6} Clone {0} just died." [ String.fromInt counters.clone ]
+    in
+    if counters.clone >= 6 then
+        ( [ ( text, YouLose ) ], initCounters )
 
     else
-        Just
-            { counters
-                | clone = counters.clone + 1
-                , ultraViolet = False
-                , actionDoll = False
-                , hitPoints = 10
-                , killerCount = 0
-            }
-
-
-cloneDies : Int -> Msg -> List ( String, Msg )
-cloneDies clone msg =
-    [ ( interpolate "\u{1FAA6} Clone {0} just died." [ String.fromInt clone ], msg ) ]
+        ( [ ( text, newCloneMsg ) ]
+        , { counters
+            | clone = counters.clone + 1
+            , ultraViolet = False
+            , actionDoll = False
+            , hitPoints = 10
+            , killerCount = 0
+          }
+        )
 
 
 next : Msg -> List ( String, Msg )
@@ -176,9 +177,15 @@ restart =
     [ ( "🔁 Restart", Instructions ) ]
 
 
-rollDice : Int -> Int -> Random.Generator (List Int)
+rollDice : Int -> Int -> Random.Generator Int
 rollDice num sides =
-    Random.list num (Random.int 1 sides)
+    Random.list num (Random.int 1 sides) |> Random.andThen (\a -> List.sum a |> Random.constant)
+
+
+skillTestGen : Int -> Int -> Int -> Random.Generator Bool
+skillTestGen num sides skill =
+    rollDice num sides
+        |> Random.andThen (\hitRoll -> hitRoll <= skill |> Random.constant)
 
 
 successText : Bool -> String
@@ -187,7 +194,7 @@ successText success =
         "YES - you did it!"
 
     else
-        "Uh oh!"
+        "Oh no, you didn't make it!"
 
 
 instructionsModel : Model
@@ -231,7 +238,6 @@ update msg model =
         textAndChoices text choices =
             textAndChoicesAndCounters text choices model.counters
 
-        -- ( { text = text, choices = choices, counters = counters, showCharSheet = False }, Cmd.none )
         textAndChoicesAndCounters : String -> List ( String, Msg ) -> Counters -> ( Model, Cmd Msg )
         textAndChoicesAndCounters text choices c =
             ( { text = text, choices = choices, counters = c, showCharSheet = False }, Cmd.none )
@@ -252,16 +258,15 @@ in a large mission briefing room.
 
         Page2 c ->
             let
-                ( nextMsg, newCounters ) =
-                    case ( maybeNewClone c, c.computerRequest ) of
-                        ( Nothing, _ ) ->
-                            ( YouLose, initCounters )
+                ( deadCloneChoices, deadCloneCounters ) =
+                    deadCloneChoicesAndCounters c
+                        (\c_ ->
+                            if c_.computerRequest then
+                                Page45
 
-                        ( Just newCloneCounters, True ) ->
-                            ( Page45, newCloneCounters )
-
-                        ( Just newCloneCounters, False ) ->
-                            ( Page32, newCloneCounters )
+                            else
+                                Page32
+                        )
             in
             textAndChoicesAndCounters
                 """
@@ -279,8 +284,8 @@ distrust of The Computer.  This should explain why you are hogtied and moving
 slowly down the conveyer belt towards the meat processing unit in Food
 Services.
 """
-                (cloneDies newCounters.clone nextMsg)
-                newCounters
+                deadCloneChoices
+                deadCloneCounters
 
         Page3 ->
             textAndChoices
@@ -413,30 +418,19 @@ to nowhere.
                     ++ [ ( "➡️ You think you have the route worked out, so you'll board a tube train", Page10Tubecar ) ]
 
         Page10Tubecar ->
-            ( model
-            , Random.generate Page10TubecarResult <| rollDice 2 10
-            )
+            ( model, Random.generate Page10TubecarResult (skillTestGen 2 10 counters.moxie) )
 
-        Page10TubecarResult diceResult ->
+        Page10TubecarResult success ->
             let
-                success =
-                    List.sum diceResult < counters.moxie
-
-                description =
+                text =
                     """
 You nervously select a tubecar and step aboard.
 
-Let's see if you can roll under your moxie ({0}). You roll two d10 - a {1}. {2}
+Let's see if you can roll under your moxie... {0}
 """
             in
             textAndChoices
-                (interpolate
-                    description
-                    [ String.fromInt counters.moxie
-                    , String.join " and a " <| List.map String.fromInt diceResult
-                    , successText success
-                    ]
-                )
+                (interpolate text [ successText success ])
                 (if success then
                     [ ( "➡️ You just caught a purple line tubecar.", Page13 ) ]
 
@@ -574,13 +568,13 @@ and the elfbot's armour has no effect against your laser.
 
         Page17Fight round enemyHP ->
             let
-                genHit : Int -> Int -> Random.Generator (Maybe Int)
-                genHit skill numOfDamageRolls =
-                    Random.int 1 100
+                hitGen : Int -> Int -> Int -> Int -> Random.Generator (Maybe Int)
+                hitGen numOfHitRolls sides skill numOfDamageRolls =
+                    skillTestGen numOfHitRolls sides skill
                         |> Random.andThen
-                            (\hitRoll ->
-                                if hitRoll <= skill then
-                                    rollDice numOfDamageRolls 10 |> Random.andThen (\damageRolls -> List.sum damageRolls |> Just |> Random.constant)
+                            (\hit ->
+                                if hit then
+                                    rollDice numOfDamageRolls sides |> Random.andThen (\damageRolls -> damageRolls |> Just |> Random.constant)
 
                                 else
                                     Nothing |> Random.constant
@@ -591,7 +585,7 @@ and the elfbot's armour has no effect against your laser.
                 (\( maybePlayerDamage, maybeEnemyDamage ) ->
                     Page17FightResult round enemyHP maybePlayerDamage maybeEnemyDamage
                 )
-                (Random.pair (genHit 25 1) (genHit 40 2))
+                (Random.pair (hitGen 1 100 25 1) (hitGen 2 100 40 2))
             )
 
         Page17FightResult round enemyHP maybePlayerDamage maybeEnemyDamage ->
@@ -606,7 +600,7 @@ and the elfbot's armour has no effect against your laser.
             in
             if round <= 2 then
                 let
-                    ( description1, newCounters ) =
+                    ( text1, newCounters ) =
                         case maybePlayerDamage of
                             Just playerDamage ->
                                 ( [ "You have been hit!" ], { counters | hitPoints = counters.hitPoints - playerDamage } )
@@ -614,9 +608,13 @@ and the elfbot's armour has no effect against your laser.
                             Nothing ->
                                 ( [ "It missed you, but not by much!" ], counters )
 
-                    ( description2, nextMsg, newerCounters ) =
+                    ( text2, choices, newerCounters ) =
                         if newCounters.hitPoints <= 0 then
-                            ( [], cloneDies counters.clone <| Page45, newCounters )
+                            let
+                                ( deadCloneChoices, deadCloneCounters ) =
+                                    deadCloneChoicesAndCounters newCounters (\_ -> Page45)
+                            in
+                            ( [], deadCloneChoices, deadCloneCounters )
 
                         else
                             case maybeEnemyDamage of
@@ -630,7 +628,7 @@ and the elfbot's armour has no effect against your laser.
                                             ( lineEnd, healedCounters ) =
                                                 heal newCounters
                                         in
-                                        ( [ "You zapped the little bastard!", "You wasted it! Good shooting!", "You will need more evidence, so you search GDH7-beta further" ++ lineEnd ]
+                                        ( [ "You zapped the little bastard!", "You wasted it! Good shooting!", "", "You will need more evidence, so you search GDH7-beta further" ++ lineEnd ]
                                         , next Page22
                                         , healedCounters
                                         )
@@ -648,8 +646,8 @@ and the elfbot's armour has no effect against your laser.
                                     )
                 in
                 textAndChoicesAndCounters
-                    ("" :: description1 ++ description2 |> String.join "\n")
-                    nextMsg
+                    ("" :: text1 ++ text2 |> String.join "\n")
+                    choices
                     newerCounters
 
             else
@@ -658,7 +656,7 @@ and the elfbot's armour has no effect against your laser.
                         heal counters
                 in
                 textAndChoicesAndCounters
-                    ([ "", "It tried to fire again, but the toy exploded and demolished it.", "You will need more evidence, so you search GDH7-beta further" ++ lineEnd ] |> String.join "\n")
+                    ([ "", "It tried to fire again, but the toy exploded and demolished it.", "", "You will need more evidence, so you search GDH7-beta further" ++ lineEnd ] |> String.join "\n")
                     (next Page22)
                     healedCounters
 
@@ -678,30 +676,19 @@ a summons from its dark lord, the Master Retailer.
                 (next Page18Balance)
 
         Page18Balance ->
-            ( model
-            , Random.generate Page18BalanceResult <| rollDice 2 10
-            )
+            ( model, Random.generate Page18BalanceResult (skillTestGen 2 10 counters.agility) )
 
-        Page18BalanceResult diceResult ->
+        Page18BalanceResult success ->
             let
-                success =
-                    List.sum diceResult < counters.agility
-
-                description =
+                text =
                     """
 WHAM, suddenly you are struck from behind.
 
-Let's see if you can roll under your agility ({0}). You roll two d10 - a {1}. {2}
+Let's see if you can roll under your agility... {0}
 """
             in
             textAndChoices
-                (interpolate
-                    description
-                    [ String.fromInt counters.agility
-                    , String.join " and a " <| List.map String.fromInt diceResult
-                    , successText success
-                    ]
-                )
+                (interpolate text [ successText success ])
                 (if success then
                     next Page19
 
@@ -741,13 +728,8 @@ Another valorous deed done in the service of The Computer!
 
         Page19KilledTooMany ->
             let
-                ( nextMsg, newCounters ) =
-                    case maybeNewClone counters of
-                        Nothing ->
-                            ( YouLose, initCounters )
-
-                        Just newCloneCounters ->
-                            ( Page45, newCloneCounters )
+                ( choices, newCounters ) =
+                    deadCloneChoicesAndCounters counters (\_ -> Page45)
             in
             textAndChoicesAndCounters
                 """
@@ -756,7 +738,7 @@ rate.  This has not gone unnoticed by the Internal Security squad at GDH7-beta.
 Suddenly, a net of laser beams spear out of the gloomy corners of the hall,
 chopping you into teeny, weeny bite size pieces.
 """
-                (cloneDies counters.clone nextMsg)
+                choices
                 newCounters
 
         Page20 ->
@@ -783,9 +765,7 @@ THIS WAY" and points off between two rows of caroling elfbots.
                 ]
 
         Page22 ->
-            ( model
-            , Random.generate Page22RandomEncounterResult <| Random.uniform Page18 [ Page15, Page21, Page29 ]
-            )
+            ( model, Random.generate Page22RandomEncounterResult <| Random.uniform Page18 [ Page15, Page21, Page29 ] )
 
         Page22RandomEncounterResult nextChoice ->
             textAndChoices
@@ -830,13 +810,8 @@ shoot.  This is your last chance.
 
         Page26 ->
             let
-                ( nextMsg, newCounters ) =
-                    case maybeNewClone counters of
-                        Nothing ->
-                            ( YouLose, initCounters )
-
-                        Just newCloneCounters ->
-                            ( Page32, newCloneCounters )
+                ( choices, newCounters ) =
+                    deadCloneChoicesAndCounters counters (\_ -> Page32)
             in
             textAndChoicesAndCounters
                 """
@@ -846,7 +821,7 @@ blaster up your nose, but that doesn't hurt as much as the multi-gigawatt
 carbonium tipped food drill in the small of your back.
 You spend the remaining micro-seconds of your life wondering what you did wrong
 """
-                (cloneDies newCounters.clone nextMsg)
+                choices
                 newCounters
 
         Page28 ->
@@ -975,13 +950,8 @@ complex.
 
         Page35 ->
             let
-                ( nextMsg, newCounters ) =
-                    case maybeNewClone counters of
-                        Nothing ->
-                            ( YouLose, initCounters )
-
-                        Just newCloneCounters ->
-                            ( Page32, newCloneCounters )
+                ( choices, newCounters ) =
+                    deadCloneChoicesAndCounters counters (\_ -> Page32)
             in
             textAndChoicesAndCounters
                 """
@@ -1002,7 +972,7 @@ here, the Master Retailer himself with his head caught in his own cannon.  His
 death will serve as a symbol of freedom for all Alpha Complex.
 Fire the cannon."
 """
-                (cloneDies counters.clone nextMsg)
+                choices
                 newCounters
 
         Page36 ->
@@ -1040,7 +1010,7 @@ begin," says the instructor.
 
         Page38 ->
             let
-                description =
+                text =
                     """
 "I am Plato-B-PHI {0}, head of mutant propaganda here at the training
 course.
@@ -1060,14 +1030,14 @@ The Troubleshooter down the front squirms deeper into his chair.
 """
             in
             textAndChoices
-                (interpolate description [ String.fromInt counters.platoClone ])
+                (interpolate text [ String.fromInt counters.platoClone ])
                 [ ( "➡️ You volunteer for the test", Page39 )
                 , ( "➡️ You duck behind a chair and hope the instructor doesn't notice you", Page40 )
                 ]
 
         Page39 ->
             let
-                description =
+                text =
                     """
 You bravely volunteer to test the mutant detection gun.  You stand up and walk
 down the steps to the podium, passing a very relieved Troubleshooter along the
@@ -1086,12 +1056,12 @@ tomorrow's mutant dissection class."
 """
             in
             textAndChoices
-                (interpolate description [ String.fromInt counters.platoClone ])
+                (interpolate text [ String.fromInt counters.platoClone ])
                 (next Page41)
 
         Page40 ->
             let
-                description =
+                text =
                     """
 You breathe a sigh of relief as Plato-B-PHI {0} picks on the other Troubleshooter.
 "You down here in the front," says the instructor pointing at the other
@@ -1107,21 +1077,31 @@ purple nimbus surrounds your body.  "Ha Ha, got one," says the instructor.
 """
             in
             textAndChoices
-                (interpolate description [ String.fromInt counters.platoClone ])
+                (interpolate text [ String.fromInt counters.platoClone ])
                 [ ( "🔫 Fight!", Page40Fight ) ]
 
         Page40Fight ->
+            let
+                genHit : Int -> Random.Generator Bool
+                genHit skill =
+                    Random.int 1 100
+                        |> Random.andThen (\hitRoll -> hitRoll <= skill |> Random.constant)
+            in
             ( model
-            , Random.generate (\( r1, r2 ) -> Page40FightResult r1 r2) <| Random.pair (Random.int 1 100) (Random.int 1 100)
+            , Random.generate
+                (\( playerHit, enemyHit ) ->
+                    Page40FightResult playerHit enemyHit
+                )
+                (Random.pair (genHit 30) (genHit 40))
             )
 
-        Page40FightResult playerHitRoll enemyHitRoll ->
+        Page40FightResult playerHit enemyHit ->
             let
                 ( text, choices ) =
-                    if playerHitRoll <= 30 then
+                    if playerHit then
                         ( "His shot hits you.  You feel numb all over.", next Page49 )
 
-                    else if enemyHitRoll <= 40 then
+                    else if enemyHit then
                         ( "His shot just missed.\n\nYou just blew his head off.  His lifeless hand drops the mutant detector ray.", next Page50 )
 
                     else
@@ -1241,13 +1221,8 @@ THE END
 
         Page48 ->
             let
-                ( nextMsg, newCounters ) =
-                    case maybeNewClone counters of
-                        Nothing ->
-                            ( YouLose, initCounters )
-
-                        Just newCloneCounters ->
-                            ( Page45, newCloneCounters )
+                ( choices, newCounters ) =
+                    deadCloneChoicesAndCounters counters (\_ -> Page45)
             in
             textAndChoicesAndCounters
                 """
@@ -1257,25 +1232,20 @@ disposal car shoot straight up out of Alpha Complex.  One of the last things
 you see is a small blue sphere slowly dwindling behind you.  After you fail to
 report in, you will be assumed dead.
 """
-                (cloneDies counters.clone nextMsg)
+                choices
                 newCounters
 
         Page49 ->
             let
-                ( nextMsg, newCounters ) =
-                    case maybeNewClone counters of
-                        Nothing ->
-                            ( YouLose, initCounters )
-
-                        Just newCloneCounters ->
-                            ( Page32, newCloneCounters )
+                ( choices, newCounters ) =
+                    deadCloneChoicesAndCounters counters (\_ -> Page32)
             in
             textAndChoicesAndCounters
                 """
 The instructor drags your inert body into a specimen detainment cage.
 "He'll make a good subject for tomorrow's mutant dissection class," you hear.
 """
-                (cloneDies counters.clone nextMsg)
+                choices
                 newCounters
 
         Page50 ->
@@ -1290,20 +1260,15 @@ You continue with the training course.
 
         Page51 ->
             let
-                ( nextMsg, newCounters ) =
-                    case maybeNewClone counters of
-                        Nothing ->
-                            ( YouLose, initCounters )
-
-                        Just newCloneCounters ->
-                            ( Page32, newCloneCounters )
+                ( choices, newCounters ) =
+                    deadCloneChoicesAndCounters counters (\_ -> Page32)
             in
             textAndChoicesAndCounters
                 """
 You run for it, but you don't run far.  Three hundred strange and exotic
 weapons turn you into a freeze dried cloud of soot.
 """
-                (cloneDies counters.clone nextMsg)
+                choices
                 newCounters
 
         Page52 ->
@@ -1325,16 +1290,15 @@ You tell The Computer about:
 
         Page54 ->
             let
-                ( nextMsg, newCounters ) =
-                    case ( maybeNewClone counters, counters.blastDoor ) of
-                        ( Nothing, _ ) ->
-                            ( YouLose, initCounters )
+                ( deadCloneChoices, deadCloneCounters ) =
+                    deadCloneChoicesAndCounters counters
+                        (\c_ ->
+                            if c_.blastDoor then
+                                Page45
 
-                        ( Just newCloneCounters, True ) ->
-                            ( Page32, newCloneCounters )
-
-                        ( Just newCloneCounters, False ) ->
-                            ( Page45, newCloneCounters )
+                            else
+                                Page32
+                        )
             in
             textAndChoicesAndCounters
                 """
@@ -1348,8 +1312,8 @@ the speaker above your head rapidly repeats "Traitor, Traitor, Traitor."
 It doesn't take long for a few guards to notice your predicament and come to
 finish you off.
 """
-                (cloneDies counters.clone nextMsg)
-                newCounters
+                deadCloneChoices
+                deadCloneCounters
 
         Page55 ->
             textAndChoices
@@ -1373,7 +1337,7 @@ the auditorium and receive their diplomas.
 
         Page55More ->
             let
-                description =
+                text =
                     """
 Soon it is your turn, "Philo-R-DMD, graduating a master of mutant
 identification and secret society infiltration."  You walk up and receive your
@@ -1389,7 +1353,7 @@ THE END
 """
             in
             textAndChoices
-                (interpolate description [ String.fromInt counters.platoClone ])
+                (interpolate text [ String.fromInt counters.platoClone ])
                 restart
 
         Page56 ->
